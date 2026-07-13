@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(curl -s http://localhost:8086/api/resolve/items -H \"Authorization: Bearer test-token\")",
-      "Bash(node -e ' *)"
-    ]
-  }
-}

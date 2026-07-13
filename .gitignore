@@ -35,3 +35,6 @@ build/
 
 # Docs (local only, not committed)
 docs/
+
+# Local Claude Code settings (personal, machine-specific)
+.claude/settings.local.json
