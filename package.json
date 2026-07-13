@@ -1,0 +1,32 @@
+{
+  "name": "complaint-app-monorepo",
+  "version": "1.0.0",
+  "description": "Consolidated complaint resolution and campus resolve applications",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "pnpm --filter proxy-server dev",
+    "dev:apps": "pnpm -r --parallel dev",
+    "dev:landing": "pnpm --filter landing-page dev",
+    "dev:voice": "pnpm --filter campus-voice dev",
+    "dev:resolve": "pnpm --filter campus-resolve dev",
+    "dev:admin": "pnpm --filter campus-admin dev",
+    "build": "pnpm -r build",
+    "build:landing": "pnpm --filter landing-page build",
+    "build:voice": "pnpm --filter campus-voice build",
+    "build:resolve": "pnpm --filter campus-resolve build",
+    "build:admin": "pnpm --filter campus-admin build",
+    "lint": "pnpm -r lint",
+    "preview": "pnpm -r preview"
+  },
+  "devDependencies": {
+    "@types/node": "^22.16.5",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.99.1"
+  }
+}

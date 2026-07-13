@@ -1,0 +1,24 @@
+{
+  "name": "complaint-app-cognito-functions",
+  "version": "1.0.0",
+  "description": "AWS Lambda functions and utilities for Cognito authentication",
+  "main": "lib/cognito-client.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "aws",
+    "cognito",
+    "authentication"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.370.0",
+    "jsonwebtoken": "^9.1.0"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0"
+  }
+}

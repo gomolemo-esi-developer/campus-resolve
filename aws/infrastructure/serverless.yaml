@@ -1,0 +1,390 @@
+service: complaint-app-cognito
+
+frameworkVersion: '3'
+useDotenv: true
+
+provider:
+  name: aws
+  region: ${env:AWS_REGION, 'us-east-2'}
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  environment:
+    COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+    COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+    COGNITO_REGION: ${self:provider.region}
+    JWT_ISSUER: https://cognito-idp.${self:provider.region}.amazonaws.com/${self:custom.cognitoUserPoolId}
+    NODE_ENV: ${self:provider.stage}
+    WS_CONNECTIONS_TABLE: !Ref ConnectionsTable
+    SQS_QUEUE_URL: !GetAtt EventQueue.QueueUrl
+    WS_API_ID: !Ref WebSocketApi
+    WS_STAGE: ${self:provider.stage}
+    COMPLAINT_EVENTS_QUEUE: !Ref ComplaintEventsQueue
+    SUPABASE_URL: ${env:SUPABASE_URL}
+    SUPABASE_ANON_KEY: ${env:SUPABASE_ANON_KEY}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:DeleteItem
+            - dynamodb:Scan
+            - dynamodb:Query
+          Resource: !GetAtt ConnectionsTable.Arn
+        - Effect: Allow
+          Action:
+            - sqs:SendMessage
+            - sqs:ReceiveMessage
+            - sqs:DeleteMessage
+          Resource: !GetAtt EventQueue.Arn
+        - Effect: Allow
+          Action:
+            - sqs:SendMessage
+            - sqs:ReceiveMessage
+          Resource: !GetAtt ComplaintEventsQueue.Arn
+        - Effect: Allow
+          Action:
+            - execute-api:ManageConnections
+          Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*"
+        - Effect: Allow
+          Action:
+            - cognito-idp:GetUser
+          Resource: !GetAtt CognitoUserPool.Arn
+
+functions:
+  # WebSocket Lambda Handlers
+  wsConnect:
+    handler: src/ws/connect.handler
+    events:
+      - websocket:
+          route: $connect
+          authorizer: wsAuthorizer
+    timeout: 30
+
+  wsDisconnect:
+    handler: src/ws/disconnect.handler
+    events:
+      - websocket:
+          route: $disconnect
+    timeout: 30
+
+  wsDefault:
+    handler: src/ws/default.handler
+    events:
+      - websocket:
+          route: $default
+    timeout: 30
+
+  wsSubscribe:
+    handler: src/ws/subscribe.handler
+    events:
+      - websocket:
+          route: subscribe
+    timeout: 30
+
+  wsUnsubscribe:
+    handler: src/ws/unsubscribe.handler
+    events:
+      - websocket:
+          route: unsubscribe
+    timeout: 30
+
+  wsSubscribeComplaints:
+    handler: src/ws/complaints.subscribeComplaints
+    events:
+      - websocket:
+          route: complaints.subscribe
+    timeout: 30
+
+  wsBroadcastComplaint:
+    handler: src/ws/complaints.broadcastComplaintEvent
+    events:
+      - sqs:
+          arn: !GetAtt ComplaintEventsQueue.Arn
+          batchSize: 1
+    timeout: 30
+
+  wsAuthorizer:
+    handler: src/ws/authorizer.handler
+    timeout: 30
+
+  eventFanout:
+    handler: src/events/fanout.handler
+    events:
+      - sqs:
+          arn: !GetAtt EventQueue.Arn
+          batchSize: 1
+    timeout: 60
+
+resources:
+  Resources:
+    # Cognito User Pool (Shared across all 3 apps)
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: complaint-app-user-pool-${self:provider.stage}
+        # Cognito User Attributes Schema
+        Schema:
+          - Name: email
+            AttributeDataType: String
+            Required: true
+            Mutable: true
+          - Name: given_name
+            AttributeDataType: String
+            Required: true
+            Mutable: true
+          - Name: family_name
+            AttributeDataType: String
+            Required: true
+            Mutable: true
+          - Name: student_number
+            AttributeDataType: String
+            Mutable: true
+          - Name: staff_number
+            AttributeDataType: String
+            Mutable: true
+          - Name: role
+            AttributeDataType: String
+            Mutable: true
+            DeveloperOnlyAttribute: false
+        # Password Policy
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+            RequireUppercase: true
+            RequireLowercase: true
+            RequireNumbers: true
+            RequireSymbols: false
+        # Auto-verify email (for development; in production, users must verify)
+        AutoVerifiedAttributes:
+          - email
+        # MFA Configuration (DISABLED - no SMS required)
+        MfaConfiguration: OFF
+        # Account Lockout
+        AccountRecoverySetting:
+          RecoveryMechanisms:
+            - Name: verified_email
+              Priority: 1
+            - Name: verified_phone_number
+              Priority: 2
+        # Email Configuration (using default Cognito email)
+        EmailConfiguration:
+          EmailSendingAccount: COGNITO_DEFAULT
+          # Optional: Use SES for custom emails
+          # ReplyToEmailAddress: noreply@complaint-app.com
+        # User attribute update configuration
+        UserAttributeUpdateSettings:
+          AttributesRequireVerificationBeforeUpdate:
+            - email
+
+    # Cognito User Pool Client
+    CognitoUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: complaint-app-client-${self:provider.stage}
+        UserPoolId: !Ref CognitoUserPool
+        # Auth Flows
+        ExplicitAuthFlows:
+          - ALLOW_ADMIN_USER_PASSWORD_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+          - ALLOW_USER_SRP_AUTH
+          - ALLOW_CUSTOM_AUTH
+        # For browser/spa apps (no client secret)
+        GenerateSecret: false
+        # Token Validity (in hours for ID/Access, days for Refresh)
+        AccessTokenValidity: 1
+        IdTokenValidity: 1
+        RefreshTokenValidity: 30
+        TokenValidityUnits:
+          AccessToken: hours
+          IdToken: hours
+          RefreshToken: days
+        # OAuth Configuration (optional, for future social login)
+        AllowedOAuthFlows:
+          - code
+          - implicit
+        AllowedOAuthScopes:
+          - email
+          - openid
+          - profile
+        AllowedOAuthFlowsUserPoolClient: true
+        # Callback URLs (update based on your frontend domains)
+        CallbackURLs:
+          - http://localhost:5173
+          - http://localhost:3000
+          - http://localhost:3001
+          - http://localhost:3002
+        # Logout URLs
+        LogoutURLs:
+          - http://localhost:5173
+          - http://localhost:3000/login
+          - http://localhost:3001/login
+          - http://localhost:3002/login
+        # Supported Identity Providers
+        SupportedIdentityProviders:
+          - COGNITO
+        # Prevent user existence errors (security best practice)
+        PreventUserExistenceErrors: ENABLED
+
+    # S3 Bucket for file attachments
+    AttachmentsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: complaint-app-attachments-${self:provider.stage}
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+                - HEAD
+              AllowedOrigins:
+                - http://localhost:3000
+                - http://localhost:8082
+                - http://localhost:8083
+                - http://localhost:8084
+                - http://localhost:5173
+              MaxAge: 3600
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        LifecycleConfiguration:
+          Rules:
+            - Id: CleanupTempUploads
+              Prefix: temp/
+              Status: Enabled
+              ExpirationInDays: 1
+
+    # WebSocket API Gateway
+    WebSocketApi:
+      Type: AWS::ApiGatewayV2::Api
+      Properties:
+        Name: complaint-app-realtime-ws-${self:provider.stage}
+        ProtocolType: WEBSOCKET
+        RouteSelectionExpression: '$request.body.action'
+
+    # WebSocket Stage
+    WebSocketStage:
+      Type: AWS::ApiGatewayV2::Stage
+      Properties:
+        ApiId: !Ref WebSocketApi
+        StageName: ${self:provider.stage}
+        AutoDeploy: true
+
+    # DynamoDB Connections Table
+    ConnectionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: complaint-app-ws-connections-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: connectionId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: connectionId
+            KeyType: HASH
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+
+    # SQS Event Queue
+    EventQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: complaint-app-comm-events-${self:provider.stage}
+        VisibilityTimeout: 65
+        MessageRetentionPeriod: 86400
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt EventDeadLetterQueue.Arn
+          maxReceiveCount: 5
+
+    # SQS Dead Letter Queue
+    EventDeadLetterQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: complaint-app-comm-events-dlq-${self:provider.stage}
+        MessageRetentionPeriod: 1209600
+
+    # SQS Complaint Events Queue
+    ComplaintEventsQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: complaint-app-complaint-events-${self:provider.stage}
+        VisibilityTimeout: 65
+        MessageRetentionPeriod: 86400
+
+  # Stack Outputs
+  Outputs:
+    UserPoolId:
+      Value: !Ref CognitoUserPool
+      Export:
+        Name: complaint-app-user-pool-id-${self:provider.stage}
+      Description: Cognito User Pool ID
+    UserPoolArn:
+      Value: !GetAtt CognitoUserPool.Arn
+      Export:
+        Name: complaint-app-user-pool-arn-${self:provider.stage}
+      Description: Cognito User Pool ARN
+    ClientId:
+      Value: !Ref CognitoUserPoolClient
+      Export:
+        Name: complaint-app-client-id-${self:provider.stage}
+      Description: Cognito App Client ID
+    UserPoolEndpoint:
+      Value: !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPool}'
+      Export:
+        Name: complaint-app-user-pool-endpoint-${self:provider.stage}
+      Description: Cognito User Pool Endpoint
+    AttachmentsBucketName:
+      Value: !Ref AttachmentsBucket
+      Export:
+        Name: complaint-app-attachments-bucket-${self:provider.stage}
+      Description: S3 Bucket for file attachments
+    AttachmentsBucketArn:
+      Value: !GetAtt AttachmentsBucket.Arn
+      Export:
+        Name: complaint-app-attachments-bucket-arn-${self:provider.stage}
+      Description: S3 Attachments Bucket ARN
+    WebSocketEndpoint:
+      Value: !Sub "wss://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/${self:provider.stage}"
+      Export:
+        Name: complaint-app-ws-endpoint-${self:provider.stage}
+      Description: WebSocket API Endpoint
+    ConnectionsTableName:
+      Value: !Ref ConnectionsTable
+      Export:
+        Name: complaint-app-connections-table-${self:provider.stage}
+      Description: DynamoDB Connections Table Name
+    EventQueueUrl:
+      Value: !GetAtt EventQueue.QueueUrl
+      Export:
+        Name: complaint-app-event-queue-url-${self:provider.stage}
+      Description: SQS Event Queue URL
+    EventQueueArn:
+      Value: !GetAtt EventQueue.Arn
+      Export:
+        Name: complaint-app-event-queue-arn-${self:provider.stage}
+      Description: SQS Event Queue ARN
+    ComplaintEventsQueueUrl:
+      Value: !GetAtt ComplaintEventsQueue.QueueUrl
+      Export:
+        Name: complaint-app-complaint-events-queue-url-${self:provider.stage}
+      Description: SQS Complaint Events Queue URL
+
+custom:
+  # These will be set from CloudFormation outputs after initial deployment
+  # On first run, remove this and let CloudFormation create the resources
+  # Then update this section with the actual IDs
+  cognitoUserPoolId: ${param:cognitoUserPoolId, ''}
+  cognitoClientId: ${param:cognitoClientId, ''}
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-offline  # For local development
+  - serverless-plugin-warmup  # Optional: keep functions warm

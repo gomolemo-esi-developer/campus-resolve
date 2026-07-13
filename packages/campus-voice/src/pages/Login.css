@@ -1,0 +1,105 @@
+/* Ripple Animation Container */
+.ripple-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Light ripples - for white background (desktop) */
+.ripple-container.ripple-light {
+  width: 600px;
+  height: 600px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ripple-container.ripple-light .ripple {
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 50%;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+
+/* Dark ripples - for dark background (mobile) */
+.ripple-container.ripple-dark .ripple {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  position: absolute;
+  opacity: 0;
+}
+
+.ripple-container.ripple-dark {
+  width: 48px;
+  height: 48px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ripple-container.ripple-dark .ripple {
+  width: 100%;
+  height: 100%;
+}
+
+/* Ripple animation - Very slow (10 seconds total) */
+@keyframes growAndFade {
+  0% {
+    opacity: 0.3;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+/* Ripple animation for mobile - Extended (14 seconds) */
+@keyframes growAndFadeMobile {
+  0% {
+    opacity: 0.3;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+/* Ripple layers with staggered delays - Desktop */
+.ripple-light .ripple1 {
+  animation: growAndFade 10s infinite ease-out;
+  animation-delay: 0s;
+}
+
+.ripple-light .ripple2 {
+  animation: growAndFade 10s infinite ease-out;
+  animation-delay: 3.33s;
+}
+
+.ripple-light .ripple3 {
+  animation: growAndFade 10s infinite ease-out;
+  animation-delay: 6.66s;
+}
+
+/* Ripple layers with staggered delays - Mobile (extended) */
+.ripple-dark .ripple1 {
+  animation: growAndFadeMobile 14s infinite ease-out;
+  animation-delay: 0s;
+}
+
+.ripple-dark .ripple2 {
+  animation: growAndFadeMobile 14s infinite ease-out;
+  animation-delay: 4.67s;
+}
+
+.ripple-dark .ripple3 {
+  animation: growAndFadeMobile 14s infinite ease-out;
+  animation-delay: 9.33s;
+}

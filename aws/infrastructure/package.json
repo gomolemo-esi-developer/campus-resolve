@@ -1,0 +1,39 @@
+{
+  "name": "complaint-app-cognito-infrastructure",
+  "version": "1.0.0",
+  "description": "Serverless infrastructure for AWS Cognito integration",
+  "main": "serverless.yaml",
+  "scripts": {
+    "deploy:dev": "serverless deploy --stage dev --region us-east-2",
+    "deploy:staging": "serverless deploy --stage staging --region us-east-2",
+    "deploy:prod": "serverless deploy --stage prod --region us-east-2",
+    "remove:dev": "serverless remove --stage dev --region us-east-2",
+    "remove:prod": "serverless remove --stage prod --region us-east-2",
+    "info:dev": "serverless info --stage dev --region us-east-2",
+    "info:prod": "serverless info --stage prod --region us-east-2",
+    "logs:dev": "serverless logs --stage dev --region us-east-2",
+    "logs:prod": "serverless logs --stage prod --region us-east-2"
+  },
+  "keywords": [
+    "serverless",
+    "aws",
+    "cognito",
+    "authentication"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-apigatewaymanagementapi": "^3.398.0",
+    "@aws-sdk/client-dynamodb": "^3.398.0",
+    "@aws-sdk/client-sqs": "^3.398.0",
+    "@aws-sdk/lib-dynamodb": "^3.398.0",
+    "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.1.0"
+  },
+  "devDependencies": {
+    "serverless": "^3.38.0",
+    "serverless-dotenv-plugin": "^6.0.0",
+    "serverless-offline": "^13.0.0",
+    "serverless-plugin-warmup": "^8.2.0"
+  }
+}

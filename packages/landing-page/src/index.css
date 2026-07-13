@@ -1,0 +1,284 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ComplaintSync Design System */
+
+@layer base {
+  :root {
+    /* ComplaintSync Color Palette */
+    --background: 0 0% 97%; /* #F8F8F8 Light Grey */
+    --foreground: 0 0% 20%; /* #333333 Dark Text */
+    
+    --card: 0 0% 100%; /* #FFFFFF White */
+    --card-foreground: 0 0% 20%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 20%;
+    
+    /* Primary: Vibrant Red #E91919 */
+    --primary: 0 85% 50%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary: Subtle Grey #CECECE */
+    --secondary: 0 0% 81%;
+    --secondary-foreground: 0 0% 20%;
+    
+    /* Muted: Light elements */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    
+    /* Accent: Light Red tint */
+    --accent: 0 85% 96%;
+    --accent-foreground: 0 85% 40%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 0 0% 90%;
+    --input: 0 0% 95%;
+    --ring: 0 85% 50%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 0 85% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 95%;
+    --sidebar-accent-foreground: 0 0% 20%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 0 85% 50%;
+    
+    /* ComplaintSync Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 97%), hsl(0 0% 100%));
+    --gradient-primary: linear-gradient(135deg, hsl(0 85% 50%), hsl(0 85% 40%));
+    --gradient-overlay: linear-gradient(180deg, hsl(0 0% 97% / 0.9), hsl(0 0% 100% / 0.95));
+    
+    /* Elegant Shadows */
+    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.08);
+    --shadow-card-hover: 0 8px 30px hsl(0 0% 0% / 0.12);
+    --shadow-button: 0 4px 14px hsl(0 85% 50% / 0.25);
+    --shadow-elegant: 0 10px 40px hsl(0 0% 0% / 0.1);
+    
+    /* Smooth Transitions */
+    --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-fast: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .dark {
+    --background: 0 0% 7%;
+    --foreground: 0 0% 95%;
+    
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 95%;
+    
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 95%;
+    
+    --primary: 0 85% 55%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 95%;
+    
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+    
+    --accent: 0 85% 15%;
+    --accent-foreground: 0 85% 70%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 0 85% 55%;
+    
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 0 85% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 0 85% 55%;
+    
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 7%), hsl(0 0% 10%));
+    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.3);
+    --shadow-card-hover: 0 8px 30px hsl(0 0% 0% / 0.4);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  /* ComplaintSync Typography */
+  .text-display {
+    @apply font-black tracking-tight leading-[1.1];
+  }
+  
+  .text-headline {
+    @apply font-bold tracking-tight leading-tight;
+  }
+  
+  .text-label {
+    @apply tracking-wide uppercase text-xs font-medium text-muted-foreground;
+  }
+}
+
+@layer components {
+  /* Hero Section Styles */
+  .hero-gradient {
+    background: var(--gradient-hero);
+  }
+  
+  /* Card Hover Effects */
+  .card-hover {
+    @apply transition-all duration-300 ease-out;
+    box-shadow: var(--shadow-card);
+  }
+  
+  .card-hover:hover {
+    @apply -translate-y-1;
+    box-shadow: var(--shadow-card-hover);
+  }
+  
+  /* Primary Button Glow */
+  .btn-glow {
+    box-shadow: var(--shadow-button);
+  }
+  
+  .btn-glow:hover {
+    box-shadow: 0 6px 20px hsl(0 85% 50% / 0.35);
+  }
+  
+  /* Portal Card Specific */
+  .portal-card {
+    @apply relative overflow-hidden transition-all duration-300;
+    box-shadow: var(--shadow-card);
+  }
+  
+  .portal-card:hover {
+    @apply -translate-y-2;
+    box-shadow: var(--shadow-card-hover);
+  }
+  
+  .portal-card:hover .portal-border {
+    @apply opacity-100;
+  }
+  
+  .portal-border {
+    @apply absolute inset-0 rounded-xl border-2 border-primary opacity-0 transition-opacity duration-300 pointer-events-none;
+  }
+  
+  /* Icon Circle */
+  .icon-circle {
+    @apply w-16 h-16 rounded-full bg-accent flex items-center justify-center;
+  }
+  
+  .icon-circle-lg {
+    @apply w-20 h-20 rounded-full bg-accent flex items-center justify-center;
+  }
+  
+  /* Section Divider */
+  .section-divider {
+    @apply h-px bg-gradient-to-r from-transparent via-border to-transparent;
+  }
+}
+
+@layer utilities {
+  /* Fade In Animations */
+  .animate-fade-in {
+    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .animate-fade-in-delayed {
+    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+    opacity: 0;
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  /* Pulse & Bounce for hierarchy dots */
+  .animate-pulse-dot {
+    animation: pulseDot 2s ease-in-out infinite;
+  }
+  
+  .animate-bounce-dot {
+    animation: bounceDot 1.2s ease-in-out infinite;
+  }
+  
+  /* Stagger delays */
+  .delay-100 { animation-delay: 0.1s; }
+  .delay-200 { animation-delay: 0.2s; }
+  .delay-300 { animation-delay: 0.3s; }
+  .delay-400 { animation-delay: 0.4s; }
+  .delay-500 { animation-delay: 0.5s; }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  @keyframes pulseDot {
+    0%, 100% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: translateX(-50%) scale(1.5);
+    }
+  }
+  
+  @keyframes bounceDot {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+}

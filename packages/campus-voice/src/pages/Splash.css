@@ -1,0 +1,53 @@
+/* Splash ripples - for dark background */
+.ripple-container.ripple-splash {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  margin: auto;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  display: block !important;
+}
+
+.ripple-container.ripple-splash .ripple {
+  border-radius: 50%;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Ripple animation - 10 seconds (matching left section) */
+@keyframes growAndFadeSplash {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  5% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+/* Ripple layers with staggered delays - Splash */
+.ripple-container.ripple-splash .ripple1 {
+  animation: growAndFadeSplash 10s infinite ease-out backwards !important;
+  animation-delay: 0s !important;
+}
+
+.ripple-container.ripple-splash .ripple2 {
+  animation: growAndFadeSplash 10s infinite ease-out backwards !important;
+  animation-delay: 3.33s !important;
+}
+
+.ripple-container.ripple-splash .ripple3 {
+  animation: growAndFadeSplash 10s infinite ease-out backwards !important;
+  animation-delay: 6.66s !important;
+}

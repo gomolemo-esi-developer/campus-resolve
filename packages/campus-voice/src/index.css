@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 0 0% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 20%;
+
+    --card-dark: 0 0% 20%;
+    --card-dark-foreground: 0 0% 95%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 20%;
+
+    --primary: 0 88% 51%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 100%;
+    --secondary-foreground: 0 0% 20%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 211 100% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 88% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 92%;
+    --input: 0 0% 94%;
+    --ring: 0 88% 51%;
+
+    --radius: 0.75rem;
+
+    --tag: 0 0% 98%;
+    --tag-foreground: 0 0% 40%;
+
+    --unread: 0 0% 80%;
+    --notification: 60 100% 50%;
+
+    --menu-active: 0 88% 51%;
+    --menu-active-foreground: 0 0% 100%;
+    --menu-inactive-icon: 0 0% 80%;
+    
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 0 88% 51%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 97%;
+    --sidebar-accent-foreground: 0 0% 20%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 0 88% 51%;
+
+    --input-focus: 211 100% 96%;
+    --label-accent: 45 100% 51%;
+  }
+}
+
+@layer utilities {
+  .menu-active-shadow {
+    box-shadow: 0 9px 24px 0 hsla(0, 88%, 51%, 0.25);
+  }
+  
+  .menu-glossy {
+    background: linear-gradient(135deg, #e91919 0%, hsl(0 88% 40%) 100%);
+  }
+  
+  .submenu-hover {
+    background: #F8F8F8;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
