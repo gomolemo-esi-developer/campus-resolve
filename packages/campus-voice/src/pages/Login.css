@@ -120,23 +120,23 @@
 }
 
 @keyframes orbitR1 {
-  from { transform: rotate(0deg) translateX(85px); }
-  to { transform: rotate(360deg) translateX(85px); }
+  from { transform: rotate(0deg) translateX(75px); }
+  to { transform: rotate(360deg) translateX(75px); }
 }
 
 @keyframes orbitR2 {
-  from { transform: rotate(0deg) translateX(135px); }
-  to { transform: rotate(360deg) translateX(135px); }
+  from { transform: rotate(0deg) translateX(120px); }
+  to { transform: rotate(360deg) translateX(120px); }
 }
 
 @keyframes orbitR3 {
-  from { transform: rotate(0deg) translateX(185px); }
-  to { transform: rotate(360deg) translateX(185px); }
+  from { transform: rotate(0deg) translateX(165px); }
+  to { transform: rotate(360deg) translateX(165px); }
 }
 
 @keyframes orbitR4 {
-  from { transform: rotate(0deg) translateX(235px); }
-  to { transform: rotate(360deg) translateX(235px); }
+  from { transform: rotate(0deg) translateX(210px); }
+  to { transform: rotate(360deg) translateX(210px); }
 }
 
 .ss-r1 { animation-name: orbitR1; animation-duration: 28s; }

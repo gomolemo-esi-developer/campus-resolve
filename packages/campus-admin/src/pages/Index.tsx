@@ -1,10 +1,19 @@
 import { LoginForm } from "@/components/LoginForm";
 import { BrandingSection } from "@/components/BrandingSection";
 import { AuthTabs } from "@/components/AuthTabs";
+import { LoginLogoBadge } from "@/components/LoginLogoBadge";
+import { LoginUniversityBrand } from "@/components/LoginUniversityBrand";
+import companyLogo from "@/assets/Company Logo 1.png";
+import universityLogo from "@/assets/TUT Iocn1.png";
 
 const Index = () => {
   return (
     <div className="flex min-h-screen">
+      <LoginLogoBadge logoSrc={companyLogo} companyName="Campus Admin" />
+      <LoginUniversityBrand
+        logoSrc={universityLogo}
+        text="Official Product of TUT"
+      />
       {/* Left Panel - Login Form */}
       <div className="w-full lg:w-1/2 bg-primary flex items-center justify-center p-8">
         <div className="w-full max-w-md space-y-8">
