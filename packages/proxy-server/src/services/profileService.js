@@ -42,8 +42,6 @@ async function updateUserProfile(userId, updateData, User) {
 
     // Define allowed fields to update
     const allowedFields = [
-      'firstName',
-      'lastName',
       'email',
       'faculty',
       'department',
@@ -82,8 +80,6 @@ async function updateUserProfile(userId, updateData, User) {
     return {
       id: user.id,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
       role: user.role,
       studentNumber: user.studentNumber,
       faculty: user.faculty,
@@ -228,14 +224,6 @@ function validateProfileUpdate(data) {
 
   if (data.email && !data.email.includes('@')) {
     errors.push('Email must be valid');
-  }
-
-  if (data.firstName && typeof data.firstName !== 'string') {
-    errors.push('First name must be a string');
-  }
-
-  if (data.lastName && typeof data.lastName !== 'string') {
-    errors.push('Last name must be a string');
   }
 
   if (data.phone && !/^\d{10,}$/.test(data.phone)) {

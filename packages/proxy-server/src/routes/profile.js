@@ -28,7 +28,7 @@ router.get('/', getProfile);
  * PUT /api/voice/profile
  * Update current user's profile
  * Requires: Authorization header with Bearer token
- * Body: { firstName, lastName, email, faculty, department, campus, course, residence, phone }
+ * Body: { email, faculty, department, campus, course, residence, phone }
  */
 router.put('/', updateProfile);
 

@@ -38,3 +38,8 @@ docs/
 
 # Local Claude Code settings (personal, machine-specific)
 .claude/settings.local.json
+
+# AWS infra secrets and build artifacts
+aws/infrastructure/.env.dev
+aws/infrastructure/.env.prod
+aws/infrastructure/.serverless/

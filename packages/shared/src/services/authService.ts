@@ -68,8 +68,6 @@ async function apiCall(
 export async function signup(
   email: string,
   password: string,
-  firstName: string,
-  lastName: string,
   studentNumber: string,
   role?: string,
   portal?: 'voice' | 'resolve' | 'admin'
@@ -86,8 +84,6 @@ export async function signup(
             ? {
                 email,
                 password,
-                given_name: firstName,
-                family_name: lastName,
                 student_number: isStaffPortal ? undefined : studentNumber,
                 staff_number: isStaffPortal ? studentNumber : undefined,
                 role: role || 'student',
@@ -96,8 +92,6 @@ export async function signup(
             : {
                 email,
                 password,
-                firstName,
-                lastName,
                 studentNumber,
               }
         ),

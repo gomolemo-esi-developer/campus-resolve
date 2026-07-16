@@ -192,14 +192,6 @@ function validateSignupInput(data) {
     errors.push('Password must be at least 8 characters long');
   }
 
-  if (!data.firstName || typeof data.firstName !== 'string') {
-    errors.push('First name is required and must be a string');
-  }
-
-  if (!data.lastName || typeof data.lastName !== 'string') {
-    errors.push('Last name is required and must be a string');
-  }
-
   if (!data.studentNumber || typeof data.studentNumber !== 'string') {
     errors.push('Student number is required and must be a string');
   }

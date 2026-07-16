@@ -25,21 +25,24 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Index />} />
-<Route
-                 path="/*"
-                 element={
-                   <ProtectedRoute requiredRoles={["staff"]}>
-<Routes>
-                        <Route path="/complaints" element={<Complaints />} />
-                        <Route path="/dashboard" element={<Navigate to="/complaints" replace />} />
-                        <Route path="/profile" element={<Profile />} />
-                        <Route path="/notes" element={<QuickNotes />} />
-                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                   </ProtectedRoute>
-                 }
-               />
+              <Route
+                path="/*"
+                element={
+                  <ProtectedRoute requiredRoles={["staff"]}>
+                    <Routes>
+                      <Route path="/complaints" element={<Complaints />} />
+                      <Route
+                        path="/dashboard"
+                        element={<Navigate to="/complaints" replace />}
+                      />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/notes" element={<QuickNotes />} />
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

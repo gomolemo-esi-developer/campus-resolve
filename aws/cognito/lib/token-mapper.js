@@ -41,8 +41,6 @@ class TokenMapper {
     return {
       id: decoded.sub, // Cognito user ID
       email: decoded.email,
-      firstName: decoded.given_name || '',
-      lastName: decoded.family_name || '',
       emailVerified: decoded.email_verified || false,
       studentNumber: decoded['custom:student_number'] || null,
       staffNumber: decoded['custom:staff_number'] || null,

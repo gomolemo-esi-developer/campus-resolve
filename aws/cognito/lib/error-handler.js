@@ -170,15 +170,6 @@ class CognitoErrorHandler {
       errors.push('Password must contain uppercase, lowercase, and numbers');
     }
 
-    // Name validation
-    if (!data.firstName || typeof data.firstName !== 'string') {
-      errors.push('First name is required');
-    }
-
-    if (!data.lastName || typeof data.lastName !== 'string') {
-      errors.push('Last name is required');
-    }
-
     return {
       isValid: errors.length === 0,
       errors,

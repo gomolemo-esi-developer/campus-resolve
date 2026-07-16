@@ -15,14 +15,12 @@ export const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   // Sign In state
-   const [signInEmail, setSignInEmail] = useState("");
-   const [signInPassword, setSignInPassword] = useState("");
+  const [signInEmail, setSignInEmail] = useState("");
+  const [signInPassword, setSignInPassword] = useState("");
 
-   // Sign Up state
+  // Sign Up state
   const [signUpEmail, setSignUpEmail] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
-  const [signUpFirstName, setSignUpFirstName] = useState("");
-  const [signUpLastName, setSignUpLastName] = useState("");
   const [signUpStaffNumber, setSignUpStaffNumber] = useState("");
   const [signUpRole, setSignUpRole] = useState("admin-staff");
   const { signup } = useAuth();
@@ -30,24 +28,21 @@ export const LoginForm = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation - only email and password are sent to backend
     if (!signInEmail || !signInPassword) {
       toast.error("Please enter email and password");
       return;
     }
 
     try {
-      console.log('[LoginForm] Starting signin...');
-      // Call backend API /api/auth/signin with email and password
+      console.log("[LoginForm] Starting signin...");
       const result = await signin(signInEmail, signInPassword);
-      console.log('[LoginForm] Signin successful, result:', result);
+      console.log("[LoginForm] Signin successful, result:", result);
       toast.success("Sign in successful!");
-      console.log('[LoginForm] About to navigate to /');
-      // Use replace: true to replace history entry and navigate to dashboard
+      console.log("[LoginForm] About to navigate to /");
       navigate("/", { replace: true });
-      console.log('[LoginForm] Navigate called');
+      console.log("[LoginForm] Navigate called");
     } catch (error) {
-      console.error('[LoginForm] Signin error:', error);
+      console.error("[LoginForm] Signin error:", error);
       toast.error(error instanceof Error ? error.message : "Sign in failed");
     }
   };
@@ -55,7 +50,7 @@ export const LoginForm = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!signUpEmail || !signUpPassword || !signUpFirstName || !signUpLastName) {
+    if (!signUpEmail || !signUpPassword) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -66,15 +61,12 @@ export const LoginForm = () => {
     }
 
     try {
-      // For admin, we use staff_number as the "student number" field
-      await signup(signUpEmail, signUpPassword, signUpFirstName, signUpLastName, signUpStaffNumber, "admin");
+      await signup(signUpEmail, signUpPassword, signUpStaffNumber, "admin");
       toast.success("Admin account created successfully!");
       setActiveTab("signin");
       setSignInEmail(signUpEmail);
       setSignUpEmail("");
       setSignUpPassword("");
-      setSignUpFirstName("");
-      setSignUpLastName("");
       setSignUpStaffNumber("");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Sign up failed");
@@ -89,14 +81,14 @@ export const LoginForm = () => {
   return (
     <div className="w-full max-w-md">
       {/* Tab Switcher */}
-      <div className="flex gap-4 mb-8">
+      <div className="flex gap-8 mb-12">
         <button
           type="button"
           onClick={() => handleTabChange("signin")}
-          className={`pb-2 text-lg font-medium transition-all ${
+          className={`text-2xl font-bold pb-2 transition-all ${
             activeTab === "signin"
-              ? "text-gray-100 border-b-2 border-gray-100"
-              : "text-gray-400 hover:text-gray-200"
+              ? "text-background border-b-4 border-background"
+              : "text-background/60 hover:text-background/80"
           }`}
         >
           Sign In
@@ -104,10 +96,10 @@ export const LoginForm = () => {
         <button
           type="button"
           onClick={() => handleTabChange("signup")}
-          className={`pb-2 text-lg font-medium transition-all ${
+          className={`text-2xl font-bold pb-2 transition-all ${
             activeTab === "signup"
-              ? "text-gray-100 border-b-2 border-gray-100"
-              : "text-gray-400 hover:text-gray-200"
+              ? "text-background border-b-4 border-background"
+              : "text-background/60 hover:text-background/80"
           }`}
         >
           Sign Up
@@ -120,7 +112,10 @@ export const LoginForm = () => {
         className={`space-y-6 ${activeTab === "signin" ? "block" : "hidden"}`}
       >
         <div className="space-y-2">
-          <Label htmlFor="signInEmail" className="text-sm text-gray-200 uppercase">
+          <Label
+            htmlFor="signInEmail"
+            className="text-sm text-gray-200 uppercase"
+          >
             email address
           </Label>
           <Input
@@ -128,7 +123,7 @@ export const LoginForm = () => {
             type="email"
             value={signInEmail}
             onChange={(e) => setSignInEmail(e.target.value)}
-            className="bg-muted/40 border-l-4 border-l-foreground border-t-0 border-r-0 border-b-0 rounded-none h-16 text-lg px-4 placeholder:text-gray-400"
+            className="bg-muted/40 border-l-4 border-l-foreground border-t-0 border-r-0 border-b-0 rounded-none h-16 text-lg px-4 text-white placeholder:text-gray-300"
             placeholder="admin@tut.ac.za"
           />
         </div>
@@ -146,13 +141,13 @@ export const LoginForm = () => {
               type={showPassword ? "text" : "password"}
               value={signInPassword}
               onChange={(e) => setSignInPassword(e.target.value)}
-              className="bg-muted/40 border-l-4 border-l-foreground border-t-0 border-r-0 border-b-0 rounded-none h-16 text-lg px-4 placeholder:text-gray-400"
+              className="bg-muted/40 border-l-4 border-l-foreground border-t-0 border-r-0 border-b-0 rounded-none h-16 text-lg px-4 text-white placeholder:text-gray-300"
               placeholder="enter password"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 hover:text-gray-200 transition-colors"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-300 hover:text-gray-200 transition-colors"
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -197,35 +192,10 @@ export const LoginForm = () => {
         className={`space-y-6 ${activeTab === "signup" ? "block" : "hidden"}`}
       >
         <div className="space-y-2">
-          <Label htmlFor="signUpFirstName" className="text-sm text-gray-200 uppercase">
-            First Name
-          </Label>
-          <Input
-            id="signUpFirstName"
-            type="text"
-            value={signUpFirstName}
-            onChange={(e) => setSignUpFirstName(e.target.value)}
-            className="bg-muted/40 border-l-4 border-l-foreground border-t-0 border-r-0 border-b-0 rounded-none h-12 text-lg px-4 placeholder:text-gray-400"
-            placeholder="John"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="signUpLastName" className="text-sm text-gray-200 uppercase">
-            Last Name
-          </Label>
-          <Input
-            id="signUpLastName"
-            type="text"
-            value={signUpLastName}
-            onChange={(e) => setSignUpLastName(e.target.value)}
-            className="bg-muted/40 border-l-4 border-l-foreground border-t-0 border-r-0 border-b-0 rounded-none h-12 text-lg px-4 placeholder:text-gray-400"
-            placeholder="Doe"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="signUpStaffNumber" className="text-sm text-gray-200 uppercase">
+          <Label
+            htmlFor="signUpStaffNumber"
+            className="text-sm text-gray-200 uppercase"
+          >
             Staff Number (Optional)
           </Label>
           <Input
@@ -233,13 +203,16 @@ export const LoginForm = () => {
             type="text"
             value={signUpStaffNumber}
             onChange={(e) => setSignUpStaffNumber(e.target.value)}
-            className="bg-muted/40 border-l-4 border-l-foreground border-t-0 border-r-0 border-b-0 rounded-none h-12 text-lg px-4 placeholder:text-gray-400"
+            className="bg-muted/40 border-l-4 border-l-foreground border-t-0 border-r-0 border-b-0 rounded-none h-12 text-lg px-4 text-white placeholder:text-gray-300"
             placeholder="S123456"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="signUpEmail" className="text-sm text-gray-200 uppercase">
+          <Label
+            htmlFor="signUpEmail"
+            className="text-sm text-gray-200 uppercase"
+          >
             email address
           </Label>
           <Input
@@ -247,7 +220,7 @@ export const LoginForm = () => {
             type="email"
             value={signUpEmail}
             onChange={(e) => setSignUpEmail(e.target.value)}
-            className="bg-muted/40 border-l-4 border-l-foreground border-t-0 border-r-0 border-b-0 rounded-none h-12 text-lg px-4 placeholder:text-gray-400"
+            className="bg-muted/40 border-l-4 border-l-foreground border-t-0 border-r-0 border-b-0 rounded-none h-12 text-lg px-4 text-white placeholder:text-gray-300"
             placeholder="admin@tut.ac.za"
           />
         </div>
@@ -265,7 +238,7 @@ export const LoginForm = () => {
               type={showPassword ? "text" : "password"}
               value={signUpPassword}
               onChange={(e) => setSignUpPassword(e.target.value)}
-              className="bg-muted/40 border-l-4 border-l-foreground border-t-0 border-r-0 border-b-0 rounded-none h-12 text-lg px-4 placeholder:text-gray-400"
+              className="bg-muted/40 border-l-4 border-l-foreground border-t-0 border-r-0 border-b-0 rounded-none h-12 text-lg px-4 text-white placeholder:text-gray-300"
               placeholder="enter password"
             />
             <button

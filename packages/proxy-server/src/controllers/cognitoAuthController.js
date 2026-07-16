@@ -24,7 +24,7 @@ class CognitoAuthController {
    */
   async signup(req, res) {
     try {
-      const { email, password, given_name, family_name, student_number, staff_number, role, portal } = req.body;
+      const { email, password, student_number, staff_number, role, portal } = req.body;
 
       console.log('[Signup] Request body:', JSON.stringify(req.body, null, 2));
 
@@ -32,8 +32,6 @@ class CognitoAuthController {
       const validation = ErrorHandler.validateSignupInput({
         email,
         password,
-        firstName: given_name,
-        lastName: family_name,
       });
 
       console.log('[Signup] Validation result:', validation);
@@ -94,10 +92,7 @@ class CognitoAuthController {
       const derivedRole = claim ? claim.role : role;
 
       // Prepare custom user attributes for Cognito
-      const userAttributes = {
-        given_name,
-        family_name,
-      };
+      const userAttributes = {};
 
       if (student_number) {
         userAttributes['custom:student_number'] = student_number;

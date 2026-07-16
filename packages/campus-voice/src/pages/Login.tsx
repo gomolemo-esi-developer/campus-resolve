@@ -13,6 +13,13 @@ import "./Login.css";
  * Licence (CC BY-NC-SA 4.0) http://creativecommons.org/licenses/by-nc-sa/4.0/
  */
 
+const steps: { n: number; pos: "top" | "right" | "bottom" | "left"; label: string }[] = [
+  { n: 1, pos: "top", label: "Report" },
+  { n: 2, pos: "right", label: "Track" },
+  { n: 3, pos: "bottom", label: "Respond" },
+  { n: 4, pos: "left", label: "Resolve" },
+];
+
 const Login = () => {
   const navigate = useNavigate();
   const { signin, signup, isLoading } = useAuth();
@@ -25,8 +32,6 @@ const Login = () => {
 
    // Sign Up form state
   const [signUpEmail, setSignUpEmail] = useState("");
-  const [signUpFirstName, setSignUpFirstName] = useState("");
-  const [signUpLastName, setSignUpLastName] = useState("");
   const [signUpStudentNumber, setSignUpStudentNumber] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
 
@@ -50,13 +55,13 @@ const Login = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!signUpEmail || !signUpPassword || !signUpFirstName || !signUpLastName || !signUpStudentNumber) {
+    if (!signUpEmail || !signUpPassword || !signUpStudentNumber) {
       toast.error("Please fill in all fields");
       return;
     }
 
     try {
-      await signup(signUpEmail, signUpPassword, signUpFirstName, signUpLastName, signUpStudentNumber, "student", "voice");
+      await signup(signUpEmail, signUpPassword, signUpStudentNumber, "student", "voice");
       toast.success("Sign up successful!");
       navigate("/messages");
     } catch (error) {
@@ -70,24 +75,76 @@ const Login = () => {
   };
 
   return (
-     <div className="min-h-screen flex flex-col md:flex-row">
-       {/* Logo Section - Left side on Desktop (white background) */}
-      <div className="hidden md:flex md:w-[25%] bg-background items-center justify-center relative overflow-hidden">
-        <div className="ripple-container ripple-light">
-          <div className="ripple ripple1"></div>
-          <div className="ripple ripple2"></div>
-          <div className="ripple ripple3"></div>
-        </div>
-        <GraduationCap className="h-16 w-16 text-foreground relative z-10" />
-      </div>
+     <div className="min-h-screen flex flex-col lg:flex-row">
+       {/* Animation Section - Left side, 40/60 on desktop, shown on mobile too */}
+      <section className="relative flex min-h-[640px] w-full flex-col overflow-hidden bg-neutral-50 lg:min-h-screen lg:w-2/5">
+        <div className="flex flex-1 items-center justify-center px-8 pt-24 pb-8 sm:pt-28 lg:pt-32">
+          <div className="relative flex items-center justify-center">
+            {/* Center icon */}
+            <div className="z-10 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
+              <div className="flex size-12 items-center justify-center rounded-lg bg-[#FF0000] text-white">
+                <GraduationCap className="size-6" strokeWidth={2.2} />
+              </div>
+            </div>
 
-      {/* Form Section - Right side on Desktop, Full on Mobile */}
-      <div className="flex-1 bg-primary flex flex-col min-h-screen md:min-h-0">
+            {/* Rings */}
+            <div className="absolute size-[170px] rounded-full border border-[#FF0000]/10" />
+            <div className="absolute size-[270px] rounded-full border border-[#FF0000]/10" />
+            <div className="absolute size-[370px] rounded-full border border-[#FF0000]/10" />
+            <div className="absolute size-[470px] rounded-full border border-[#FF0000]/10" />
+
+            {/* Orbiting dots */}
+            <div className="ss-dot ss-r1" />
+            <div className="ss-dot ss-r2" />
+            <div className="ss-dot ss-r3" />
+            <div className="ss-dot ss-r4" />
+
+            {/* Step labels */}
+            {steps.map((s) => {
+              const cls =
+                s.pos === "top"
+                  ? "-top-16 left-1/2 -translate-x-1/2 items-center"
+                  : s.pos === "right"
+                  ? "top-1/2 -right-28 -translate-y-1/2 items-start"
+                  : s.pos === "bottom"
+                  ? "-bottom-16 left-1/2 -translate-x-1/2 items-center"
+                  : "top-1/2 -left-28 -translate-y-1/2 items-end";
+              return (
+                <div key={s.n} className={`absolute flex flex-col ${cls}`}>
+                  <span className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-black">
+                    Step {s.n}
+                  </span>
+                  <span className="bg-neutral-50 px-2 text-sm font-medium text-zinc-500">
+                    {s.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Text Card - bottom */}
+        <div className="px-8 pb-12 lg:px-12">
+  <div className="rounded-2xl bg-white p-8 shadow-[0_25px_60px_-20px_rgba(0,0,0,0.15)]">
+    <h2 className="font-serif text-2xl leading-tight text-zinc-900 lg:text-3xl">
+      A clear path from grievance to formal resolution.
+    </h2>
+    <p className="mt-4 text-sm leading-relaxed text-zinc-500">
+      StudentSync ensures every formal complaint follows a structured, transparent
+      process. From initial submission to final verification, we keep you informed at
+      every milestone.
+    </p>
+  </div>
+</div>
+      </section>
+
+      {/* Form Section - Right side, 40/60 on desktop, full width on mobile */}
+      <div className="w-full lg:w-3/5 bg-primary flex flex-col min-h-screen lg:min-h-0">
         {/* App Header - Top */}
         <div className="px-8 md:px-16 lg:px-24 pt-12">
           <div className="flex items-center justify-center gap-3">
             <div className="bg-primary-foreground/20 p-2 rounded-lg relative overflow-hidden">
-              <div className="ripple-container ripple-dark md:hidden">
+              <div className="ripple-container ripple-dark lg:hidden">
                 <div className="ripple ripple1"></div>
                 <div className="ripple ripple2"></div>
                 <div className="ripple ripple3"></div>
@@ -182,20 +239,6 @@ const Login = () => {
                 onChange={(e) => setSignUpEmail(e.target.value)}
                 className="h-14 bg-black/50 border-0 rounded-2xl text-primary-foreground placeholder:text-primary-foreground/50 px-5 !ring-0 !focus-visible:ring-0 !focus-visible:ring-offset-0"
                 placeholder="enter email"
-              />
-              <Input
-                type="text"
-                value={signUpFirstName}
-                onChange={(e) => setSignUpFirstName(e.target.value)}
-                className="h-14 bg-black/50 border-0 rounded-2xl text-primary-foreground placeholder:text-primary-foreground/50 px-5 !ring-0 !focus-visible:ring-0 !focus-visible:ring-offset-0"
-                placeholder="enter first name"
-              />
-              <Input
-                type="text"
-                value={signUpLastName}
-                onChange={(e) => setSignUpLastName(e.target.value)}
-                className="h-14 bg-black/50 border-0 rounded-2xl text-primary-foreground placeholder:text-primary-foreground/50 px-5 !ring-0 !focus-visible:ring-0 !focus-visible:ring-offset-0"
-                placeholder="enter last name"
               />
               <Input
                 type="text"

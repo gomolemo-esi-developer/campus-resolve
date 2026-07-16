@@ -70,8 +70,6 @@ async function apiCall(
 export async function signup(
   email: string,
   password: string,
-  firstName: string,
-  lastName: string,
   studentNumber: string
 ) {
   // Dev mode: skip API call
@@ -79,8 +77,6 @@ export async function signup(
     const mockUser = {
       id: 'dev-user-' + Date.now(),
       email,
-      firstName,
-      lastName,
       studentNumber,
       role: 'student',
     };
@@ -99,8 +95,6 @@ export async function signup(
         body: JSON.stringify({
           email,
           password,
-          given_name: firstName,
-          family_name: lastName,
           student_number: studentNumber,
           role: 'student',
         }),
@@ -174,8 +168,6 @@ export async function signin(email: string, password: string) {
     const mockUser = {
       id: 'dev-user-' + Date.now(),
       email,
-      firstName: 'Dev',
-      lastName: 'User',
       role,
     };
     const mockToken = 'dev-token-' + Date.now();

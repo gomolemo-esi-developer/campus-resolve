@@ -15,14 +15,12 @@ const {
  */
 async function signup(req, res) {
   try {
-    const { email, password, firstName, lastName, studentNumber, role = 'student' } = req.body;
+    const { email, password, studentNumber, role = 'student' } = req.body;
 
     // Validate input
     const validation = validateSignupInput({
       email,
       password,
-      firstName,
-      lastName,
       studentNumber,
     });
 
@@ -62,8 +60,6 @@ async function signup(req, res) {
     const user = await req.app.locals.User.create({
       email,
       password: hashedPassword,
-      firstName,
-      lastName,
       studentNumber,
       role,
       is_active: true,

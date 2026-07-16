@@ -132,11 +132,11 @@ resources:
             Mutable: true
           - Name: given_name
             AttributeDataType: String
-            Required: true
+            Required: false
             Mutable: true
           - Name: family_name
             AttributeDataType: String
-            Required: true
+            Required: false
             Mutable: true
           - Name: student_number
             AttributeDataType: String

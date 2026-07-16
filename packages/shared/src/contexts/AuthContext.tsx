@@ -10,8 +10,6 @@ import * as authService from '../services/authService';
 export interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
   role: 'student' | 'staff' | 'admin';
   studentNumber?: string;
   staffNumber?: string;
@@ -26,8 +24,6 @@ export interface AuthContextType {
   signup: (
     email: string,
     password: string,
-    firstName: string,
-    lastName: string,
     studentNumber: string,
     role?: string,
     portal?: 'voice' | 'resolve' | 'admin'
@@ -67,8 +63,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (
     email: string,
     password: string,
-    firstName: string,
-    lastName: string,
     studentNumber: string,
     role?: string,
     portal?: 'voice' | 'resolve' | 'admin'
@@ -79,8 +73,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const result = await authService.signup(
         email,
         password,
-        firstName,
-        lastName,
         studentNumber,
         role,
         portal

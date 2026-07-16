@@ -29,7 +29,7 @@ const authLimiter = rateLimit({
 /**
  * POST /api/auth/signup
  * Register a new student user
- * Body: { email, password, firstName, lastName, studentNumber }
+ * Body: { email, password, studentNumber }
  */
 router.post('/signup', authLimiter, signup);
 

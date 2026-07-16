@@ -85,8 +85,6 @@ async function main() {
     body: JSON.stringify({
       email: testStudent.email,
       password: testPassword,
-      given_name: testStudent.first_name,
-      family_name: testStudent.last_name,
       student_number: testStudent.student_id,
       role: 'student',
       portal: 'voice',

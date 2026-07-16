@@ -8,8 +8,6 @@ const Index = () => {
       {/* Left Panel - Login Form */}
       <div className="w-full lg:w-1/2 bg-primary flex items-center justify-center p-8">
         <div className="w-full max-w-md space-y-8">
-          <AuthTabs />
-          
           <div className="space-y-4">
             <h2 className="text-5xl font-bold text-background">Welcome back</h2>
             <p className="text-background/90 text-lg">Complaint App - Admin Portal</p>
