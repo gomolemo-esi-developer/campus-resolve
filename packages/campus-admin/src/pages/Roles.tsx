@@ -1,7 +1,9 @@
 import { Search, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { AdminTable, AdminTableColumn } from "@/components/admin/AdminTable";
+import { IdCell } from "@/components/admin/IdCell";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
@@ -19,9 +21,22 @@ import { roleApi, ApiError, RoleData } from "@/services/adminApi";
 // Level options will be loaded from database
 
 const columns: AdminTableColumn<RoleData>[] = [
-    { key: "id", label: "Role ID" },
-    { key: "role", label: "Role Name" },
-    { key: "level", label: "Level", width: "w-16" },
+    {
+        key: "id",
+        label: "Role ID",
+        width: "w-[190px]",
+        render: (val) => <IdCell id={String(val)} />,
+    },
+    { key: "role", label: "Role Name", width: "w-[280px]" },
+    {
+        key: "level",
+        label: "Level",
+        render: (val) => (
+            <Badge variant="secondary" className="font-semibold tracking-wide">
+                {String(val)}
+            </Badge>
+        ),
+    },
 ];
 
 const validateForm = (data: Record<string, string>) => {

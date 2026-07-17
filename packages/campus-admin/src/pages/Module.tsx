@@ -345,12 +345,12 @@ export default function Module() {
     };
 
     const columns: AdminTableColumn<ModuleData>[] = [
-        { key: "code", label: "Module Code", width: "w-24" },
-        { key: "name", label: "Module Name", width: "flex-1 min-w-[200px]" },
+        { key: "code", label: "Module Code", width: "w-[140px]" },
+        { key: "name", label: "Module Name", width: "w-[260px]" },
         {
             key: "courseName",
             label: "Course",
-            width: "w-32",
+            width: "w-[200px]",
             render: (value) => (
                 <Badge variant="secondary" className="bg-foreground text-background">
                     {value || "Unknown"}
@@ -360,7 +360,7 @@ export default function Module() {
         {
             key: "departmentName",
             label: "Department",
-            width: "w-36",
+            width: "w-[200px]",
             render: (value) => (
                 <Badge variant="secondary" className="bg-foreground text-background">
                     {value || "Unknown"}
@@ -370,7 +370,6 @@ export default function Module() {
         {
             key: "facultyName",
             label: "Faculty",
-            width: "w-32",
             render: (value) => (
                 <Badge variant="outline">
                     {value || "Unknown"}

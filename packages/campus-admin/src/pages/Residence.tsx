@@ -1,12 +1,14 @@
 import { Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import {
     AdminTable,
     AdminTableColumn,
+    IdCell,
     DeleteConfirmDialog,
     ActionBar,
     Pagination,
@@ -370,14 +372,28 @@ export default function Residence() {
     };
 
     const columns: AdminTableColumn<ResidenceData>[] = [
-        { key: "residenceId", label: "Residence ID", width: "w-24" },
-        { key: "residence", label: "Residence Name" },
-        { key: "residenceType", label: "Type", width: "w-28" },
-        { key: "address", label: "Address" },
+        {
+            key: "residenceId",
+            label: "Residence ID",
+            width: "w-[190px]",
+            render: (val) => <IdCell id={String(val)} />,
+        },
+        { key: "residence", label: "Residence Name", width: "w-[220px]" },
+        {
+            key: "residenceType",
+            label: "Type",
+            width: "w-[140px]",
+            nowrap: true,
+            render: (val) => (
+                <Badge variant="secondary" className="whitespace-nowrap font-semibold tracking-wide">
+                    {String(val)}
+                </Badge>
+            ),
+        },
+        { key: "address", label: "Address", width: "w-[260px]", truncate: true },
         {
             key: "manager",
             label: "Manager",
-            width: "w-36",
             render: (val) => {
                 const staff = staffOptions.find(s => s.staffId === val);
                 return staff ? staff.label : val || '—';

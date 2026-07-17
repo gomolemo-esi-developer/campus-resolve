@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
     AdminTable,
     AdminTableColumn,
+    IdCell,
     Pagination,
     ActionBar,
     DeleteConfirmDialog,
@@ -304,9 +305,23 @@ export default function Department() {
     };
 
     const columns: AdminTableColumn<DepartmentData>[] = [
-        { key: "id", label: "Department ID", width: "w-32" },
-        { key: "name", label: "Department Name" },
-        { key: "abbreviation", label: "Abbreviation", width: "w-24" },
+        {
+            key: "id",
+            label: "Department ID",
+            width: "w-[190px]",
+            render: (val) => <IdCell id={String(val)} />,
+        },
+        { key: "name", label: "Department Name", width: "w-[240px]" },
+        {
+            key: "abbreviation",
+            label: "Abbreviation",
+            width: "w-[120px]",
+            render: (val) => (
+                <Badge variant="secondary" className="font-semibold tracking-wide">
+                    {String(val)}
+                </Badge>
+            ),
+        },
         {
             key: "facultyName",
             label: "Faculty",

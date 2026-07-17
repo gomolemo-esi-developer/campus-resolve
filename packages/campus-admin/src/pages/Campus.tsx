@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
     AdminTable,
     AdminTableColumn,
+    IdCell,
     Pagination,
     ActionBar,
     DeleteConfirmDialog,
@@ -14,6 +15,7 @@ import {
     VALIDATION,
     ERROR_MESSAGES,
 } from "@/components/admin";
+import { Badge } from "@/components/ui/badge";
 import { useRowSelection } from "@/hooks/useRowSelection";
 import { usePagination } from "@/hooks/usePagination";
 import { useAdminDialogs } from "@/hooks/useAdminDialogs";
@@ -275,10 +277,28 @@ export default function Campus() {
     ];
 
     const columns: AdminTableColumn<CampusData>[] = [
-        { key: "id", label: "Campus ID", width: "w-32" },
-        { key: "name", label: "Campus Name" },
-        { key: "abbreviation", label: "Abbreviation", width: "w-24" },
-        { key: "location", label: "Location" },
+        {
+            key: "id",
+            label: "Campus ID",
+            width: "w-[190px]",
+            render: (val) => <IdCell id={String(val)} />,
+        },
+        { key: "name", label: "Campus Name", width: "w-[240px]" },
+        {
+            key: "abbreviation",
+            label: "Abbreviation",
+            width: "w-[120px]",
+            render: (val) => (
+                <Badge variant="secondary" className="font-semibold tracking-wide">
+                    {String(val)}
+                </Badge>
+            ),
+        },
+        {
+            key: "location",
+            label: "Location",
+            truncate: true,
+        },
     ];
 
     const isFormValid = formData.name.trim() && formData.abbreviation.trim();

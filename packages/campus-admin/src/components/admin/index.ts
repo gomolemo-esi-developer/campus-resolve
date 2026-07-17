@@ -4,6 +4,7 @@
  */
 
 export { AdminTable, type AdminTableColumn } from "./AdminTable";
+export { IdCell } from "./IdCell";
 export { FormModal, type FormField } from "./FormModal";
 export { FormInputField } from "./FormInputField";
 export { FormSelect, AutoFillField, type SelectOption } from "./FormSelect";

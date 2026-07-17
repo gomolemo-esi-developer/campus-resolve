@@ -369,21 +369,21 @@ export default function Students() {
                 )
             ),
         },
-        { key: "studentId", label: "Student No.", width: "w-24" },
+        { key: "studentId", label: "Student No.", width: "w-28", nowrap: true },
         {
             key: "fullName",
             label: "Full Name",
-            width: "flex-1 min-w-[180px]",
+            width: "w-[220px]",
             render: (_, row) => (
                 <button className="text-primary hover:underline text-left font-medium truncate block max-w-full" onClick={() => handleView(row)}>
                     {row.title} {row.firstName} {row.lastName}
                 </button>
             ),
         },
-        { key: "course", label: "Course", width: "w-32" },
-        { key: "department", label: "Department", width: "w-32" },
-        { key: "extracurricular", label: "Extracurricular", width: "w-32" },
-        { key: "residence", label: "Residence", width: "w-28" },
+        { key: "course", label: "Course", width: "w-[220px]", truncate: true },
+        { key: "department", label: "Department", width: "w-[180px]", truncate: true },
+        { key: "extracurricular", label: "Extracurricular", width: "w-[170px]", truncate: true },
+        { key: "residence", label: "Residence", nowrap: true },
     ];
 
 const tabs = ["All", ...campusLocations];

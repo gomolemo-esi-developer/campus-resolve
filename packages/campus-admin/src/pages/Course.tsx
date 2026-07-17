@@ -382,11 +382,12 @@ export default function Course() {
     };
 
     const columns: AdminTableColumn<CourseData>[] = [
-        { key: "code", label: "Course Code", width: "w-32" },
-        { key: "name", label: "Course Name" },
+        { key: "code", label: "Course Code", width: "w-[140px]" },
+        { key: "name", label: "Course Name", width: "w-[260px]" },
         {
             key: "departmentName",
             label: "Department",
+            width: "w-[220px]",
             render: (val) => <Badge variant="secondary" className="bg-foreground text-background">{val || 'Unknown'}</Badge>,
         },
         {

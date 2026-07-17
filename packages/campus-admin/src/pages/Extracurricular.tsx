@@ -298,11 +298,10 @@ export default function Extracurricular() {
     };
 
     const columns: AdminTableColumn<ExtracurricularData>[] = [
-        { key: "activity", label: "Activity Name" },
+        { key: "activity", label: "Activity Name", width: "w-[320px]" },
         {
             key: "departmentName",
             label: "Department",
-            width: "w-40",
             render: (value, row) => {
                 // Use departmentName if available, otherwise lookup by departmentId
                 let displayName = value;
