@@ -192,14 +192,14 @@ export const AddNoteModal = ({ open, onOpenChange, onSave }: AddNoteModalProps) 
           <Button
             variant="outline"
             onClick={handleCancel}
-            className="transition-all duration-200 hover:bg-muted"
+            className="border-foreground/25 text-foreground transition-all duration-200 hover:bg-gray-100"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSave}
             disabled={!canSave}
-            className="bg-secondary hover:bg-secondary/90 text-secondary-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-foreground hover:bg-foreground/90 text-background transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Save Note
           </Button>

@@ -84,6 +84,8 @@ const Complaints = () => {
             }),
             relativeTime: "Complaint",
             priority: complaint.priority as "normal" | "urgent" | "emergency",
+            category: complaint.category,
+            status: complaint.status,
             preview: complaint.description.substring(0, 50) + "...",
             messages: (complaint.messages || []).map((msg) => ({
               id: msg.id,

@@ -35,6 +35,8 @@ export interface Conversation {
   preview: string;
   type: MessageType;
   unread: boolean;
+  category?: string;
+  status?: "open" | "in_progress" | "escalated" | "resolved" | "closed";
 }
 
 interface ConversationsContextType {

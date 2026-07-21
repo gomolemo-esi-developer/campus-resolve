@@ -256,17 +256,17 @@ const getFileIcon = (fileType: string) => {
               
               {/* Desktop: Show both buttons */}
               <div className="hidden sm:flex gap-2">
-                <Button 
+                <Button
                   onClick={() => setIsAddNoteModalOpen(true)}
-                  className="bg-secondary hover:bg-secondary/90 text-secondary-foreground transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md"
+                  className="bg-foreground hover:bg-foreground/90 text-background transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md"
                 >
                   <StickyNote className="w-4 h-4 mr-2" />
                   Add Note
                 </Button>
-                <Button 
+                <Button
                   onClick={() => setIsAttachModalOpen(true)}
                   variant="outline"
-                  className="border-secondary text-secondary hover:bg-secondary/10 transition-all duration-200 hover:scale-105"
+                  className="border-foreground/25 text-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-200 hover:scale-105"
                 >
                   <Paperclip className="w-4 h-4 mr-2" />
                   Add File
@@ -276,9 +276,9 @@ const getFileIcon = (fileType: string) => {
               {/* Mobile: Dropdown menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild className="sm:hidden">
-                  <Button 
+                  <Button
                     size="icon"
-                    className="bg-secondary hover:bg-secondary/90 text-secondary-foreground h-12 w-12 rounded-full shadow-md"
+                    className="bg-foreground hover:bg-foreground/90 text-background h-12 w-12 rounded-full shadow-md"
                   >
                     <Plus className="w-5 h-5" />
                   </Button>
@@ -315,17 +315,17 @@ const getFileIcon = (fileType: string) => {
 
             {/* Filter Tabs */}
             <Tabs value={activeFilter} onValueChange={(v) => setActiveFilter(v as FilterType)} className="mb-6">
-              <TabsList className="bg-muted/50 w-full justify-start rounded-lg">
-                <TabsTrigger value="all" className="flex-1 sm:flex-none">All</TabsTrigger>
-                <TabsTrigger value="note" className="flex-1 sm:flex-none">
+              <TabsList className="bg-gray-100 w-full justify-start rounded-lg">
+                <TabsTrigger value="all" className="flex-1 sm:flex-none text-foreground/60 hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background">All</TabsTrigger>
+                <TabsTrigger value="note" className="flex-1 sm:flex-none text-foreground/60 hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background">
                   <StickyNote className="w-4 h-4 mr-2" />
                   Notes
                 </TabsTrigger>
-                <TabsTrigger value="link" className="flex-1 sm:flex-none">
+                <TabsTrigger value="link" className="flex-1 sm:flex-none text-foreground/60 hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background">
                   <Link2 className="w-4 h-4 mr-2" />
                   Links
                 </TabsTrigger>
-                <TabsTrigger value="file" className="flex-1 sm:flex-none">
+                <TabsTrigger value="file" className="flex-1 sm:flex-none text-foreground/60 hover:text-foreground data-[state=active]:bg-foreground data-[state=active]:text-background">
                   <Paperclip className="w-4 h-4 mr-2" />
                   Files
                 </TabsTrigger>

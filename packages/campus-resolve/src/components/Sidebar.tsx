@@ -78,7 +78,7 @@ export const Sidebar = () => {
                 <NavLink
                   to={item.url}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-full text-foreground/70 hover:bg-muted/50 transition-colors relative"
+                  className="flex items-center gap-3 px-4 py-3 rounded-full text-foreground/70 hover:bg-secondary/10 hover:text-secondary transition-colors relative"
                   activeClassName="bg-secondary text-background hover:bg-secondary font-medium before:content-[''] before:absolute before:left-[-16px] before:top-0 before:bottom-0 before:w-1 before:bg-secondary before:rounded-r-full"
                 >
                   <item.icon className="w-5 h-5" />
@@ -93,7 +93,7 @@ export const Sidebar = () => {
         <div className="p-4">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-full text-foreground/70 hover:bg-muted/50 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-full text-foreground/70 hover:bg-secondary/10 hover:text-secondary transition-colors"
           >
             <LogOut className="w-5 h-5" />
             <span>Logout</span>

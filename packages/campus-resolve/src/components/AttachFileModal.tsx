@@ -160,18 +160,18 @@ export const AttachFileModal = ({ open, onOpenChange, onUpload }: AttachFileModa
             className={cn(
               "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200",
               isDragging
-                ? "border-secondary bg-secondary/10 scale-[1.02]"
-                : "border-border hover:border-secondary hover:bg-muted/30"
+                ? "border-foreground bg-foreground/5 scale-[1.02]"
+                : "border-gray-200 hover:border-foreground/40 hover:bg-gray-50"
             )}
           >
             <Upload className={cn(
               "w-12 h-12 mx-auto mb-4 transition-colors duration-200",
-              isDragging ? "text-secondary" : "text-muted-foreground"
+              isDragging ? "text-foreground" : "text-gray-400"
             )} />
             <p className="text-sm font-medium text-foreground mb-1">
               Drag and drop files here
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-400">
               or click to browse (images, PDFs, Excel, etc.)
             </p>
           </div>
@@ -206,7 +206,7 @@ export const AttachFileModal = ({ open, onOpenChange, onUpload }: AttachFileModa
                   </div>
                   
                   {/* File Item Container */}
-                  <div key={`${fileItem.id}-file`} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border animate-fade-in">
+                  <div key={`${fileItem.id}-file`} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 animate-fade-in">
                     {fileItem.preview ? (
                       <img
                         src={fileItem.preview}
@@ -223,7 +223,7 @@ export const AttachFileModal = ({ open, onOpenChange, onUpload }: AttachFileModa
                       <p className="text-sm font-medium text-foreground truncate">
                         {fileItem.file.name}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-gray-400">
                         {formatFileSize(fileItem.file.size)}
                       </p>
                     </div>
@@ -249,7 +249,7 @@ export const AttachFileModal = ({ open, onOpenChange, onUpload }: AttachFileModa
           {isUploading && (
             <div className="space-y-2 animate-fade-in">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Uploading...</span>
+                <span className="text-gray-400">Uploading...</span>
                 <span className="text-foreground font-medium">{uploadProgress}%</span>
               </div>
               <Progress value={uploadProgress} className="h-2" />
@@ -262,14 +262,14 @@ export const AttachFileModal = ({ open, onOpenChange, onUpload }: AttachFileModa
             variant="outline"
             onClick={handleCancel}
             disabled={isUploading}
-            className="transition-all duration-200 hover:bg-muted"
+            className="border-foreground/25 text-foreground transition-all duration-200 hover:bg-gray-100"
           >
             Cancel
           </Button>
           <Button
             onClick={handleUpload}
             disabled={!isValid}
-            className="bg-secondary hover:bg-secondary/90 text-secondary-foreground transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-foreground hover:bg-foreground/90 text-background transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Upload {files.length > 0 && `(${files.length})`}
           </Button>
