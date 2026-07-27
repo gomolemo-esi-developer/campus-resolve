@@ -74,14 +74,14 @@ const menuItems = [
 export function AppSidebar() {
   return (
     <aside className="w-[270px] bg-sidebar border-r border-sidebar-border/50 flex-shrink-0 h-screen sticky top-0">
-      <nav className="py-6">
+      <nav className="py-6 space-y-1">
         {menuItems.map((item) => (
           <NavLink
             key={item.title}
             to={item.path}
             end={item.path === "/"}
-            className="flex items-center gap-3 px-6 py-3 text-sidebar-foreground hover:text-foreground transition-colors rounded-none"
-            activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+            className="relative flex items-center gap-3 pl-6 pr-5 py-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors after:absolute after:right-0 after:top-1/2 after:-translate-y-1/2 after:h-0 after:w-1 after:rounded-l-full after:bg-sidebar-primary after:transition-all"
+            activeClassName="bg-sidebar-accent text-sidebar-primary font-semibold hover:bg-sidebar-accent hover:text-sidebar-primary after:h-8"
           >
             <item.icon className="h-5 w-5 flex-shrink-0" />
             <span className="text-[15px]">{item.title}</span>
