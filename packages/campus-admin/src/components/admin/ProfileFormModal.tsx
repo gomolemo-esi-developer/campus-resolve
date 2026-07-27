@@ -737,6 +737,7 @@ export function ProfileFormModal({
             });
             setRoleInfo({ role: "", level: "" });
             setAdditionalInfo({ extracurricular: "", residence: "" });
+            setProfileImage("");
             setSelectedModules([]);
             setAcademicEntries([{ id: "new-1", course: "", courseCode: "", department: "", departmentId: "", faculty: "", facultyCode: "" }]);
             setCascadeState({});

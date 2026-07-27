@@ -16,8 +16,10 @@ function extractS3Key(url) {
   try {
     if (url.startsWith('http')) {
       const parsed = new URL(url);
-      // Remove leading slash from pathname
-      return parsed.pathname.replace(/^\//, '');
+      // pathname is percent-encoded (e.g. spaces become %20) - decode it back
+      // to the real object key, otherwise the stored key won't match what S3
+      // actually stored the object under and reads will 404 with NoSuchKey.
+      return decodeURIComponent(parsed.pathname.replace(/^\//, ''));
     }
     return url;
   } catch (e) {

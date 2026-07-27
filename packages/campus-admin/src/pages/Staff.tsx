@@ -10,6 +10,7 @@ import {
     ActionBar,
     Pagination,
     TableTabButton,
+    AvatarCell,
 } from "@/components/admin";
 import { ProfileFormModal } from "@/components/admin/ProfileFormModal";
 import { useRowSelection } from "@/hooks/useRowSelection";
@@ -415,13 +416,12 @@ export default function Staff() {
             label: "Photo",
             width: "w-14",
             render: (_, row) => (
-                row.image ? (
-                    <img src={row.image} alt={`${row.firstName} ${row.lastName}`} className="w-9 h-9 rounded-full object-cover cursor-pointer" onClick={() => handleView(row)} />
-                ) : (
-                    <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground cursor-pointer" onClick={() => handleView(row)}>
-                        {row.initials || (row.firstName[0] + row.lastName[0])}
-                    </div>
-                )
+                <AvatarCell
+                    src={row.image}
+                    initials={row.initials || (row.firstName[0] + row.lastName[0])}
+                    alt={`${row.firstName} ${row.lastName}`}
+                    onClick={() => handleView(row)}
+                />
             ),
         },
         { key: "staffId", label: "Staff No.", width: "w-28", nowrap: true },
