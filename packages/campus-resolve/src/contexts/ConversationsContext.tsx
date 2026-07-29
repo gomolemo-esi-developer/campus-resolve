@@ -21,6 +21,7 @@ export interface Message {
   content: string;
   attachments?: MessageAttachment[];
   isSent?: boolean;
+  message_type?: string;
 }
 
 export interface Conversation {
@@ -37,6 +38,7 @@ export interface Conversation {
   unread: boolean;
   category?: string;
   status?: "open" | "in_progress" | "escalated" | "resolved" | "closed";
+  canReply?: boolean;
 }
 
 interface ConversationsContextType {

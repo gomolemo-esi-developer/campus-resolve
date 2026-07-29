@@ -5,6 +5,7 @@ const ComplaintTypesService = require('./complaintTypesService');
 const ParticipantsService = require('./participantsService');
 const ResolveConversationsService = require('./resolveConversationsService');
 const QuickNotesService = require('./quickNotesService');
+const EscalationService = require('./escalationService');
 
 const STATUS_VALUES = ['open', 'in_progress', 'escalated', 'resolved', 'closed'];
 
@@ -67,6 +68,66 @@ class CommunicationDataService {
       this.client,
       (authUser, defaultRole) => this._getOrCreateProfile(authUser, defaultRole)
     );
+    this._escalationService = new EscalationService(this.client);
+  }
+
+  /**
+   * Bumps a complaint to the next escalation level and records the hop in
+   * escalation_history. Returns the resolved next level/assignee, or null if
+   * the complaint's category has no configured chain, or the chain is exhausted.
+   */
+  async _escalateComplaint(complaint, escalatedByProfileId, reason) {
+    const resolution = await this._escalationService.resolveNextAssignee(complaint);
+    if (!resolution) return null;
+
+    const fromLevel = complaint.current_level || 1;
+
+    const { error: historyError } = await this.client.from('escalation_history').insert({
+      complaint_id: complaint.id,
+      from_level: fromLevel,
+      to_level: resolution.nextLevel,
+      reason: reason || null,
+      escalated_by: escalatedByProfileId || null,
+      escalated_at: new Date().toISOString(),
+    });
+    if (historyError) throw historyError;
+
+    let escalatorLabel = 'the system';
+    if (escalatedByProfileId) {
+      const { data: escalatorProfile } = await this.client
+        .from('profiles')
+        .select('first_name, last_name, role')
+        .eq('id', escalatedByProfileId)
+        .maybeSingle();
+      if (escalatorProfile) {
+        const name = `${escalatorProfile.first_name || ''} ${escalatorProfile.last_name || ''}`.trim() || 'Unknown';
+        const roleLabel = escalatorProfile.role === 'student' ? 'Student' : 'Staff';
+        escalatorLabel = `${name} (${roleLabel})`;
+      }
+    }
+
+    await this._insertSystemMessage(
+      complaint.id,
+      escalatedByProfileId || complaint.filed_by,
+      'escalation',
+      `Level ${resolution.nextLevel}`,
+      `Message escalated to Level ${resolution.nextLevel} by ${escalatorLabel}${reason ? ` — ${reason}` : ''}`
+    );
+
+    return {
+      current_level: resolution.nextLevel,
+      assigned_to: resolution.assignedProfileId,
+    };
+  }
+
+  /**
+   * A complaint stops accepting staff action once it's resolved/closed, and once it's
+   * assigned, only the current assignee (not whoever handled an earlier level) may act on it.
+   */
+  _canActOnComplaint(complaint, profileId) {
+    if (complaint.status === 'resolved' || complaint.status === 'closed') return false;
+    if (complaint.assigned_to && complaint.assigned_to !== profileId) return false;
+    return true;
   }
 
   isEnabled() {
@@ -281,6 +342,7 @@ async _insertMessageAttachments(messageId, attachments = []) {
       status: 'open',
       current_level: 1,
       priority: payload.priority || 'normal',
+      chain_variant: payload.chain_variant || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -432,6 +494,7 @@ attachmentMap = new Map();
         sender: m.sender_id === profile.cognito_sub ? 'user' : 'staff',
         text: m.subject || '',
         content: m.content,
+        messageType: m.message_type,
         attachments: m.attachments || [],
         time: formatTime(m.created_at),
         date: formatDate(m.created_at),
@@ -445,6 +508,7 @@ attachmentMap = new Map();
       date: formatDate(complaint.created_at),
       time: formatTime(complaint.created_at),
       attachments: initialMessage?.attachments || [],
+      can_reply: complaint.status !== 'resolved' && complaint.status !== 'closed',
       responses,
       messages: mappedMessages,
     };
@@ -475,18 +539,39 @@ attachmentMap = new Map();
     const canUpdate = complaint.filed_by === profile.id || complaint.assigned_to === profile.id || Boolean(participant);
     if (!canUpdate) throw new Error('Unauthorized to update this complaint');
 
+    const updatePayload = { status, updated_at: new Date().toISOString() };
+    if (status === 'escalated') {
+      const escalation = await this._escalateComplaint(complaint, profile.id, 'Student-initiated escalation');
+      if (escalation) {
+        updatePayload.current_level = escalation.current_level;
+        updatePayload.assigned_to = escalation.assigned_to;
+      }
+    }
+
     const { data, error } = await this.client
       .from('complaints')
-      .update({ status, updated_at: new Date().toISOString() })
+      .update(updatePayload)
       .eq('id', complaintId)
       .select('*')
       .single();
 
     if (error) throw error;
 
+    if (status === 'resolved') {
+      await this._insertSystemMessage(
+        complaintId,
+        profile.id,
+        'resolution',
+        'Resolved',
+        'Issue resolved. Ending communication between parties.'
+      );
+    }
+
     return {
       id: data.id,
       status: data.status,
+      current_level: data.current_level,
+      assigned_to: data.assigned_to,
       updated_at: data.updated_at,
     };
   }
@@ -541,6 +626,12 @@ attachmentMap = new Map();
 
     if (complaintError) throw complaintError;
     if (!complaint) throw new Error('Complaint not found');
+
+    if (complaint.status === 'resolved' || complaint.status === 'closed') {
+      const deniedError = new Error('This complaint is already resolved and no longer accepts replies');
+      deniedError.statusCode = 403;
+      throw deniedError;
+    }
 
     await this._participantsService.upsertParticipant(
       complaintId,
@@ -799,13 +890,17 @@ const attachments = await this._insertMessageAttachments(data.id, payload.attach
     let query = this.client
       .from('complaints')
       .select(`*, profiles:filed_by(cognito_sub, first_name, last_name, email)`)
-      .eq('status', 'open')
       .order('created_at', { ascending: false });
 
     // Show complaints assigned to this staff member OR unassigned complaints
     query = query.or(`assigned_to.eq.${profile.id},assigned_to.is.null`);
 
-    if (filters.status) query = query.eq('status', filters.status);
+    if (filters.status) {
+      query = query.eq('status', filters.status);
+    } else {
+      // Active complaints only (any level) - resolved/closed ones are archived out of the inbox
+      query = query.in('status', ['open', 'in_progress', 'escalated']);
+    }
     if (filters.category) query = query.eq('category', filters.category);
 
     const { data, error } = await query;
@@ -917,6 +1012,7 @@ const attachments = await this._insertMessageAttachments(data.id, payload.attach
       priority: complaint.priority || 'normal',
       filed_by: complaint.profiles?.cognito_sub || complaint.filed_by,
       assigned_to: complaint.assigned_to,
+      can_reply: this._canActOnComplaint(complaint, profile.id),
       student_name: `${complaint.profiles?.first_name || ''} ${complaint.profiles?.last_name || ''}`.trim() || 'Unknown',
       student_email: complaint.profiles?.email || '',
       created_at: complaint.created_at,
@@ -927,11 +1023,30 @@ const attachments = await this._insertMessageAttachments(data.id, payload.attach
         sender_id: m.profiles?.cognito_sub || m.sender_id,
         sender_name: `${m.profiles?.first_name || ''} ${m.profiles?.last_name || ''}`.trim() || 'Unknown',
         sender_type: m.message_type === 'staff' || m.profiles?.role === 'admin' || m.profiles?.role === 'admin-resolve' || m.profiles?.role === 'staff' ? 'staff' : 'student',
+        message_type: m.message_type,
         created_at: m.created_at,
         subject: m.subject || undefined,
         attachments: attachmentMap.get(m.id) || [],
       })),
     };
+  }
+
+  /**
+   * Insert a system-generated message (escalation/resolution notice) into the thread,
+   * visible to both student and staff like any other reply.
+   */
+  async _insertSystemMessage(complaintId, senderId, messageType, subject, content) {
+    const { error } = await this.client.from('complaint_messages').insert({
+      complaint_id: complaintId,
+      sender_id: senderId,
+      subject,
+      content,
+      message_type: messageType,
+      is_internal: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+    if (error) throw error;
   }
 
   /**
@@ -941,17 +1056,59 @@ const attachments = await this._insertMessageAttachments(data.id, payload.attach
     this._ensureEnabled();
     const profile = await this._getOrCreateProfile(authUser, 'admin-resolve');
 
+    const { data: complaint, error: findError } = await this.client
+      .from('complaints')
+      .select('*')
+      .eq('id', complaintId)
+      .maybeSingle();
+    if (findError) throw findError;
+    if (!complaint) throw new Error('Complaint not found');
+
+    if (!this._canActOnComplaint(complaint, profile.id)) {
+      const deniedError = new Error(
+        complaint.status === 'resolved' || complaint.status === 'closed'
+          ? 'This complaint is already resolved and no longer accepts changes'
+          : 'You are no longer assigned to this complaint'
+      );
+      deniedError.statusCode = 403;
+      throw deniedError;
+    }
+
+    const updatePayload = { ...updates, updated_at: new Date().toISOString() };
+    if (updates.status === 'escalated') {
+      const escalation = await this._escalateComplaint(complaint, profile.id, updates.reason || 'Staff-initiated escalation');
+      if (escalation) {
+        updatePayload.current_level = escalation.current_level;
+        updatePayload.assigned_to = escalation.assigned_to;
+      }
+      delete updatePayload.reason;
+    } else if (updates.status === 'resolved') {
+      delete updatePayload.reason;
+    }
+
     const { data, error } = await this.client
       .from('complaints')
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update(updatePayload)
       .eq('id', complaintId)
       .select('*')
       .single();
 
     if (error) throw error;
+
+    if (updates.status === 'resolved') {
+      await this._insertSystemMessage(
+        complaintId,
+        profile.id,
+        'resolution',
+        'Resolved',
+        'Issue resolved. Ending communication between parties.'
+      );
+    }
+
     return {
       id: data.id,
       status: data.status,
+      current_level: data.current_level,
       assigned_to: data.assigned_to,
       updated_at: data.updated_at,
     };
@@ -987,6 +1144,24 @@ const attachments = await this._insertMessageAttachments(data.id, payload.attach
     console.log('[COMPLAINTS MSG] Processing for complaintId:', complaintId, 'userId:', authUser?.id);
     const profile = await this._getOrCreateProfile(authUser, 'admin-resolve');
     console.log('[COMPLAINTS MSG] Profile found:', profile?.id, profile?.role);
+
+    const { data: complaint, error: complaintError } = await this.client
+      .from('complaints')
+      .select('status, assigned_to')
+      .eq('id', complaintId)
+      .maybeSingle();
+    if (complaintError) throw complaintError;
+    if (!complaint) throw new Error('Complaint not found');
+
+    if (!this._canActOnComplaint(complaint, profile.id)) {
+      const deniedError = new Error(
+        complaint.status === 'resolved' || complaint.status === 'closed'
+          ? 'This complaint is already resolved and no longer accepts replies'
+          : 'You are no longer assigned to this complaint'
+      );
+      deniedError.statusCode = 403;
+      throw deniedError;
+    }
 
     try {
       await this._participantsService.upsertParticipant(

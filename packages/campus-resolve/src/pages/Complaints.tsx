@@ -2,9 +2,10 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { InboxPanel } from "@/components/InboxPanel";
 import { MessageDetail } from "@/components/MessageDetail";
+import { LevelDivider } from "@/components/LevelDivider";
 import { ComposeArea } from "@/components/ComposeArea";
 import { Button } from "@/components/ui/button";
-import { PenLine, X, MessageSquare, ChevronLeft } from "lucide-react";
+import { PenLine, X, MessageSquare, ChevronLeft, ArrowUpCircle, CheckCircle2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   useConversations as useConversationsContext,
@@ -30,7 +31,10 @@ const Complaints = () => {
     fetchAssignedComplaints,
     fetchComplaint,
     addComplaintMessage,
+    updateComplaintStatus,
   } = useComplaints();
+  const [isEscalating, setIsEscalating] = useState(false);
+  const [isResolving, setIsResolving] = useState(false);
 
 // Convert complaints to conversations format
   useEffect(() => {
@@ -103,6 +107,7 @@ const Complaints = () => {
               content: msg.content,
               isSent: msg.sender_type === "staff",
               attachments: normalizeAttachments(msg.attachments),
+              message_type: msg.message_type,
             })),
             type: "complaint" as const,
             unread: complaint.status === "open",
@@ -131,82 +136,84 @@ const Complaints = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-useEffect(() => {
-     if (selectedConversation?.type === "complaint") {
-       fetchComplaint(selectedConversation.id).then((fullComplaint) => {
-         if (fullComplaint) {
-           // Normalize attachments with storageKey support
-           const normalizeAttachments = (atts: any[] | undefined): MessageAttachment[] | undefined => {
-             if (!Array.isArray(atts)) return undefined;
-             return atts.map((att) => ({
-               type:
-                 att?.file_type === "image"
-                   ? "image"
-                   : att?.file_type === "pdf"
-                     ? "pdf"
-                     : att?.file_type === "excel"
-                       ? "excel"
-                       : att?.file_type === "word"
-                         ? "word"
-                         : att?.type === "pdf"
-                           ? "pdf"
-                           : att?.type === "image"
-                             ? "image"
-                             : att?.type === "excel"
-                               ? "excel"
-                               : att?.type === "word"
-                                 ? "word"
-                                 : "document",
-               name: att?.name || att?.file_name || "Attachment",
-               url: att?.url || att?.file_path || undefined,
-               storageKey: att?.storage_key || undefined,
-               id: att?.id || undefined,
-               size: att?.size || att?.file_size || undefined,
-               mimeType: att?.mimeType || att?.mime_type || undefined,
-             }));
-           };
+  const refreshComplaintMessages = useMemo(
+    () => async (complaintId: string) => {
+      const fullComplaint = await fetchComplaint(complaintId);
+      if (!fullComplaint) return;
 
-           const updatedMessages = (fullComplaint.messages || []).map((msg) => ({
-            id: msg.id,
-            subject: msg.subject || fullComplaint.title,
-            date: new Date(msg.created_at).toLocaleDateString("en-GB", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            }),
-            time: new Date(msg.created_at).toLocaleTimeString("en-GB", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            }),
-            content: msg.content,
-            isSent: msg.sender_type === "staff",
-            attachments: normalizeAttachments(msg.attachments),
-          }));
+      // Normalize attachments with storageKey support
+      const normalizeAttachments = (atts: any[] | undefined): MessageAttachment[] | undefined => {
+        if (!Array.isArray(atts)) return undefined;
+        return atts.map((att) => ({
+          type:
+            att?.file_type === "image"
+              ? "image"
+              : att?.file_type === "pdf"
+                ? "pdf"
+                : att?.file_type === "excel"
+                  ? "excel"
+                  : att?.file_type === "word"
+                    ? "word"
+                    : att?.type === "pdf"
+                      ? "pdf"
+                      : att?.type === "image"
+                        ? "image"
+                        : att?.type === "excel"
+                          ? "excel"
+                          : att?.type === "word"
+                            ? "word"
+                            : "document",
+          name: att?.name || att?.file_name || "Attachment",
+          url: att?.url || att?.file_path || undefined,
+          storageKey: att?.storage_key || undefined,
+          id: att?.id || undefined,
+          size: att?.size || att?.file_size || undefined,
+          mimeType: att?.mimeType || att?.mime_type || undefined,
+        }));
+      };
 
-          setConversations((prev) =>
-            prev.map((conv) =>
-              conv.id === fullComplaint.id
-                ? { ...conv, messages: updatedMessages }
-                : conv,
-            ),
-          );
+      const updatedMessages = (fullComplaint.messages || []).map((msg) => ({
+        id: msg.id,
+        subject: msg.subject || fullComplaint.title,
+        date: new Date(msg.created_at).toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }),
+        time: new Date(msg.created_at).toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }),
+        content: msg.content,
+        isSent: msg.sender_type === "staff",
+        attachments: normalizeAttachments(msg.attachments),
+        message_type: msg.message_type,
+      }));
 
-          setSelectedConversation((prev) =>
-            prev && prev.id === fullComplaint.id
-              ? { ...prev, messages: updatedMessages }
-              : prev,
-          );
-        }
-      });
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.id === fullComplaint.id
+            ? { ...conv, messages: updatedMessages, status: fullComplaint.status, canReply: fullComplaint.can_reply }
+            : conv,
+        ),
+      );
+
+      setSelectedConversation((prev) =>
+        prev && prev.id === fullComplaint.id
+          ? { ...prev, messages: updatedMessages, status: fullComplaint.status, canReply: fullComplaint.can_reply }
+          : prev,
+      );
+    },
+    [fetchComplaint, setConversations, setSelectedConversation],
+  );
+
+  useEffect(() => {
+    if (selectedConversation?.type === "complaint") {
+      refreshComplaintMessages(selectedConversation.id);
     }
-  }, [
-    selectedConversation?.id,
-    selectedConversation?.type,
-    fetchComplaint,
-    setConversations,
-    setSelectedConversation,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedConversation?.id, selectedConversation?.type]);
 
   const quickNotes = useMemo(
     () =>
@@ -332,6 +339,32 @@ const handleSendMessage = async (message: {
     setIsComposeOpen(false);
   };
 
+  const handleEscalate = async () => {
+    if (!selectedConversation || selectedConversation.type !== "complaint") return;
+    setIsEscalating(true);
+    try {
+      const updated = await updateComplaintStatus(selectedConversation.id, "escalated", "Staff-initiated escalation");
+      if (updated) {
+        await refreshComplaintMessages(selectedConversation.id);
+      }
+    } finally {
+      setIsEscalating(false);
+    }
+  };
+
+  const handleResolve = async () => {
+    if (!selectedConversation || selectedConversation.type !== "complaint") return;
+    setIsResolving(true);
+    try {
+      const updated = await updateComplaintStatus(selectedConversation.id, "resolved");
+      if (updated) {
+        await refreshComplaintMessages(selectedConversation.id);
+      }
+    } finally {
+      setIsResolving(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen w-full">
       <Sidebar />
@@ -383,7 +416,15 @@ const handleSendMessage = async (message: {
 
                     {/* Messages */}
                     <div className="space-y-4 md:space-y-6">
-                      {selectedConversation.messages.map((message) => (
+                      {selectedConversation.type === "complaint" && (
+                        <LevelDivider label="Level 1" />
+                      )}
+                      {selectedConversation.messages.map((message) =>
+                        message.message_type === "escalation" ? (
+                          <LevelDivider key={message.id} label={message.subject} note={message.content} />
+                        ) : message.message_type === "resolution" ? (
+                          <LevelDivider key={message.id} label={message.content} />
+                        ) : (
                         <div
                           key={message.id}
                           className={`flex ${message.isSent ? "justify-end" : "justify-start"}`}
@@ -399,7 +440,8 @@ const handleSendMessage = async (message: {
                             />
                           </div>
                         </div>
-                      ))}
+                        )
+                      )}
                       <div ref={messagesEndRef} />
                     </div>
                   </div>
@@ -409,26 +451,61 @@ const handleSendMessage = async (message: {
               {/* Compose Area - Always at bottom, centered */}
               <div className="p-4 md:p-6 bg-[#F8F8F8]">
                 <div className="max-w-5xl mx-auto">
-                  {!isComposeOpen ? (
-                    <Button
-                      onClick={() => setIsComposeOpen(true)}
-                      className="bg-white hover:bg-white text-[#FA6400] font-normal shadow-md hover:shadow-lg transition-all duration-200 gap-2 px-6 py-5 rounded-lg min-h-[52px] text-base border border-gray-200 w-full md:w-auto"
-                      size="lg"
-                    >
-                      <PenLine className="w-5 h-5" />
-                      Reply
-                    </Button>
+                  {selectedConversation.type === "complaint" && selectedConversation.canReply === false ? (
+                    <div className="text-center text-sm text-muted-foreground py-3 animate-in fade-in duration-300">
+                      {selectedConversation.status === "resolved"
+                        ? "This complaint has been resolved. The conversation is closed."
+                        : "This complaint has moved to the next level. You can no longer reply here."}
+                    </div>
+                  ) : !isComposeOpen ? (
+                    <div className="flex items-center gap-3 flex-wrap animate-in fade-in slide-in-from-bottom-3 zoom-in-95 duration-300 ease-out">
+                      <Button
+                        onClick={() => setIsComposeOpen(true)}
+                        className="bg-foreground hover:bg-foreground/90 active:scale-95 text-background font-normal shadow-md hover:shadow-lg transition-all duration-300 ease-out gap-2 px-6 py-5 rounded-full min-h-[52px] text-base"
+                        size="lg"
+                      >
+                        <PenLine className="w-5 h-5" />
+                        Reply
+                      </Button>
+
+                      {selectedConversation.type === "complaint" && selectedConversation.status !== "resolved" && (
+                        <div className="flex items-center bg-foreground rounded-full p-1 shadow-md transition-shadow duration-300 hover:shadow-lg">
+                          <button
+                            type="button"
+                            onClick={handleEscalate}
+                            disabled={isEscalating}
+                            className="group flex items-center h-11 px-3 rounded-full text-background hover:bg-background/10 active:scale-95 transition-all duration-300 ease-in-out disabled:opacity-50"
+                          >
+                            <ArrowUpCircle className="w-5 h-5 shrink-0 transition-transform duration-300 ease-in-out group-hover:scale-110" />
+                            <span className="max-w-0 group-hover:max-w-[100px] opacity-0 group-hover:opacity-100 group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out text-sm font-medium">
+                              {isEscalating ? "Escalating..." : "Escalate"}
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleResolve}
+                            disabled={isResolving}
+                            className="group flex items-center h-11 px-3 rounded-full text-background hover:bg-background/10 active:scale-95 transition-all duration-300 ease-in-out disabled:opacity-50"
+                          >
+                            <CheckCircle2 className="w-5 h-5 shrink-0 transition-transform duration-300 ease-in-out group-hover:scale-110" />
+                            <span className="max-w-0 group-hover:max-w-[100px] opacity-0 group-hover:opacity-100 group-hover:ml-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out text-sm font-medium">
+                              {isResolving ? "Resolving..." : "Resolved"}
+                            </span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <div
                       ref={composeRef}
-                      className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden"
+                      className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-bottom-3 zoom-in-95 duration-300 ease-out"
                     >
                       <div className="relative p-4 md:p-6">
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => setIsComposeOpen(false)}
-                          className="absolute top-4 right-4 text-muted-foreground hover:text-secondary hover:bg-secondary/10"
+                          className="absolute top-4 right-4 text-muted-foreground hover:text-secondary hover:bg-secondary/10 transition-colors duration-200"
                         >
                           <X className="w-5 h-5" />
                         </Button>

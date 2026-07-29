@@ -24,6 +24,7 @@ export interface Complaint {
   priority: string;
   filed_by: string;
   assigned_to?: string;
+  can_reply?: boolean;
   created_at: string;
   updated_at: string;
   messages?: Message[];
@@ -64,6 +65,7 @@ export interface ComplaintResponse {
   sender: string;
   text: string;
   content: string;
+  messageType?: string;
   attachments: Attachment[];
   time: string;
   date: string;
@@ -134,6 +136,7 @@ const normalizeResponse = (response: unknown): ComplaintResponse => {
     sender: toStringValue(item.sender, 'staff'),
     text: toStringValue(item.text, ''),
     content: toStringValue(item.content, ''),
+    messageType: item.messageType ? toStringValue(item.messageType) : undefined,
     attachments: Array.isArray(item.attachments)
       ? item.attachments.map(normalizeAttachment)
       : [],
@@ -154,6 +157,7 @@ const normalizeComplaint = (complaint: unknown): Complaint => {
     priority: toStringValue(item.priority, 'normal'),
     filed_by: toStringValue(item.filed_by, ''),
     assigned_to: item.assigned_to ? toStringValue(item.assigned_to) : undefined,
+    can_reply: item.can_reply !== false,
     created_at: toStringValue(item.created_at, new Date().toISOString()),
     updated_at: toStringValue(item.updated_at, toStringValue(item.created_at, new Date().toISOString())),
     messages: Array.isArray(item.messages)
@@ -255,6 +259,7 @@ export const useComplaints = () => {
       title: string;
       description: string;
       category: string;
+      chain_variant?: string;
       attachments?: Array<{
         name: string;
         fileType?: string;

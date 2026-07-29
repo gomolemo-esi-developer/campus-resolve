@@ -17,6 +17,7 @@ import { useFormManagement } from "@/hooks/useFormManagement";
 import { useSearch } from "@/hooks/useSearch";
 import { FormSelect, SelectOption } from "@/components/admin/FormSelect";
 import { roleApi, ApiError, RoleData } from "@/services/adminApi";
+import { EscalationChainBuilder } from "./EscalationChainBuilder";
 
 // Level options will be loaded from database
 
@@ -65,6 +66,7 @@ export default function Roles() {
     const [levelOptions, setLevelOptions] = useState<SelectOption[]>([]);
     const [editingItem, setEditingItem] = useState<RoleData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isManaging, setIsManaging] = useState(false);
 
     const { selectedRows, toggleRow, toggleSelectAll, clearSelection, setSelectedRows } =
         useRowSelection();
@@ -305,23 +307,43 @@ export default function Roles() {
                         />
                     </div>
 
-                    <Button
-                        onClick={handleAdd}
-                        disabled={isLoading}
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground gap-3 rounded-full pl-6 pr-2 h-12 shadow-lg shadow-primary/30 disabled:opacity-50"
-                    >
-                        {isLoading ? (
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                        ) : (
-                            <>
-                                <span className="font-medium">Add</span>
-                                <div className="bg-white rounded-full p-2">
-                                    <Plus className="h-5 w-5 text-primary" />
-                                </div>
-                            </>
-                        )}
-                    </Button>
+                    <div className="flex items-center gap-3">
+                        <Button
+                            onClick={() => setIsManaging((prev) => !prev)}
+                            variant={isManaging ? "outline" : "default"}
+                            className={
+                                isManaging
+                                    ? "rounded-full h-12 px-6"
+                                    : "bg-foreground hover:bg-foreground/90 text-background rounded-full h-12 px-6"
+                            }
+                        >
+                            {isManaging ? "View Table" : "Manage"}
+                        </Button>
+
+                        <Button
+                            onClick={handleAdd}
+                            disabled={isLoading || isManaging}
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground gap-3 rounded-full pl-6 pr-2 h-12 shadow-lg shadow-primary/30 disabled:opacity-50"
+                        >
+                            {isLoading ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                            ) : (
+                                <>
+                                    <span className="font-medium">Add</span>
+                                    <div className="bg-white rounded-full p-2">
+                                        <Plus className="h-5 w-5 text-primary" />
+                                    </div>
+                                </>
+                            )}
+                        </Button>
+                    </div>
                 </div>
+
+                {isManaging && (
+                    <div className="flex-1 overflow-hidden">
+                        <EscalationChainBuilder onCancel={() => setIsManaging(false)} />
+                    </div>
+                )}
 
                 {/* Add Dialog */}
                 <FormModal
@@ -391,6 +413,8 @@ export default function Roles() {
                     onConfirm={confirmDelete}
                 />
 
+                {!isManaging && (
+                <>
                 {/* Table Container */}
                 <div className="bg-card rounded-lg shadow-sm p-6 flex flex-col flex-1 overflow-hidden relative">
                     {isLoading && (
@@ -427,6 +451,8 @@ export default function Roles() {
                         itemsPerPage={10}
                     />
                 </div>
+                </>
+                )}
             </div>
         </div>
     );

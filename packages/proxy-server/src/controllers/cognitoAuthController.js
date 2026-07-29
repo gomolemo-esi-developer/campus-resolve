@@ -106,6 +106,20 @@ class CognitoAuthController {
         userAttributes['custom:role'] = derivedRole;
       }
 
+      // Cognito's user pool schema requires given_name/family_name. For
+      // pre-registered portals, pull them from the matched admin-created
+      // record; otherwise fall back to whatever the signup form submitted.
+      const firstName = claim ? claim.record.first_name : req.body.first_name;
+      const lastName = claim ? claim.record.last_name : req.body.last_name;
+
+      if (firstName) {
+        userAttributes['given_name'] = firstName;
+      }
+
+      if (lastName) {
+        userAttributes['family_name'] = lastName;
+      }
+
       console.log('[Signup] User attributes being sent to Cognito:', JSON.stringify(userAttributes, null, 2));
 
       // Call Cognito SignUp API

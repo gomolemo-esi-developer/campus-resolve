@@ -1421,13 +1421,14 @@ app.get('/api/resolve/complaints/:id', authMiddleware, async (req, res) => {
 
 // PUT /api/resolve/complaints/:id - Update complaint status
 app.put('/api/resolve/complaints/:id', authMiddleware, async (req, res) => {
-  const { status, assigned_to } = req.body;
+  const { status, assigned_to, reason } = req.body;
 
   if (isEnabled('FEATURE_COMPLAINTS_SUPABASE') && communicationDataService.isEnabled()) {
     try {
       const data = await communicationDataService.updateComplaint(req.user, req.params.id, {
         status,
         assigned_to,
+        reason,
       });
       return res.json({
         success: true,
@@ -1436,6 +1437,12 @@ app.put('/api/resolve/complaints/:id', authMiddleware, async (req, res) => {
       });
     } catch (error) {
       console.error('[COMPLAINTS] Update error:', error.message);
+      const statusCode = error.statusCode || (String(error.message || '').toLowerCase().includes('not found') ? 404 : 500);
+      return res.status(statusCode).json({
+        success: false,
+        error: statusCode === 403 ? 'Forbidden' : statusCode === 404 ? 'Not found' : 'Server error',
+        message: error.message,
+      });
     }
   }
 
@@ -1494,6 +1501,9 @@ app.post('/api/resolve/complaints/:id/messages', authMiddleware, async (req, res
     } catch (error) {
       console.error('[COMPLAINTS MSG] Message error:', error.message);
       console.error('[COMPLAINTS MSG] Error stack:', error.stack);
+      if (error.statusCode === 403) {
+        return res.status(403).json({ success: false, error: 'Forbidden', message: error.message });
+      }
       if (String(error.message || '').toLowerCase().includes('not found')) {
         return res.status(404).json({ success: false, error: 'Not found', message: error.message });
       }

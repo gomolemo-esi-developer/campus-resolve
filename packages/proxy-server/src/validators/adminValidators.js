@@ -788,6 +788,210 @@ const validators = {
       return sanitized;
     },
   },
+
+  /**
+   * Office validation
+   */
+  office: {
+    create(data) {
+      const errors = [];
+
+      if (!data.name || data.name.trim().length === 0) {
+        errors.push('Office name is required');
+      }
+      if (!data.category_key || data.category_key.trim().length === 0) {
+        errors.push('Category key is required');
+      }
+      if (data.campus_id && typeof data.campus_id !== 'string') {
+        errors.push('Invalid campus ID format');
+      }
+
+      if (errors.length > 0) {
+        throw new ValidationError(errors);
+      }
+
+      return {
+        name: data.name.trim(),
+        category_key: data.category_key.trim(),
+        campus_id: data.campus_id || null,
+      };
+    },
+
+    update(data) {
+      const sanitized = {};
+
+      if (data.name !== undefined) {
+        if (data.name.trim().length === 0) {
+          throw new ValidationError(['Office name cannot be empty']);
+        }
+        sanitized.name = data.name.trim();
+      }
+      if (data.category_key !== undefined) {
+        sanitized.category_key = data.category_key.trim();
+      }
+      if (data.campus_id !== undefined) {
+        sanitized.campus_id = data.campus_id || null;
+      }
+
+      return sanitized;
+    },
+  },
+
+  /**
+   * Escalation chain validation
+   */
+  escalationChain: {
+    create(data) {
+      const errors = [];
+      const validScopes = ['department', 'faculty', 'office', 'university'];
+
+      if (!data.category_key || data.category_key.trim().length === 0) {
+        errors.push('Category key is required');
+      }
+      if (!data.scope_type || !validScopes.includes(data.scope_type)) {
+        errors.push(`Scope type must be one of: ${validScopes.join(', ')}`);
+      }
+
+      if (errors.length > 0) {
+        throw new ValidationError(errors);
+      }
+
+      return {
+        category_key: data.category_key.trim(),
+        variant: data.variant?.trim() || null,
+        scope_type: data.scope_type,
+      };
+    },
+
+    update(data) {
+      const sanitized = {};
+      const validScopes = ['department', 'faculty', 'office', 'university'];
+
+      if (data.category_key !== undefined) {
+        sanitized.category_key = data.category_key.trim();
+      }
+      if (data.variant !== undefined) {
+        sanitized.variant = data.variant?.trim() || null;
+      }
+      if (data.scope_type !== undefined) {
+        if (!validScopes.includes(data.scope_type)) {
+          throw new ValidationError([`Scope type must be one of: ${validScopes.join(', ')}`]);
+        }
+        sanitized.scope_type = data.scope_type;
+      }
+
+      return sanitized;
+    },
+  },
+
+  /**
+   * Escalation chain step validation
+   */
+  escalationChainStep: {
+    create(data) {
+      const errors = [];
+
+      if (!data.chain_id) {
+        errors.push('Chain is required');
+      }
+      if (!data.role_id) {
+        errors.push('Role is required');
+      }
+      if (data.step_order === undefined || data.step_order === null || isNaN(parseInt(data.step_order))) {
+        errors.push('Step order is required and must be a number');
+      }
+
+      if (errors.length > 0) {
+        throw new ValidationError(errors);
+      }
+
+      return {
+        chain_id: data.chain_id,
+        role_id: data.role_id,
+        step_order: parseInt(data.step_order),
+        active: data.active !== undefined ? Boolean(data.active) : true,
+      };
+    },
+
+    update(data) {
+      const sanitized = {};
+
+      if (data.role_id !== undefined) {
+        sanitized.role_id = data.role_id;
+      }
+      if (data.step_order !== undefined) {
+        if (isNaN(parseInt(data.step_order))) {
+          throw new ValidationError(['Step order must be a number']);
+        }
+        sanitized.step_order = parseInt(data.step_order);
+      }
+      if (data.active !== undefined) {
+        sanitized.active = Boolean(data.active);
+      }
+
+      return sanitized;
+    },
+  },
+
+  /**
+   * Role holder validation
+   */
+  roleHolder: {
+    create(data) {
+      const errors = [];
+      const validOrgUnitTypes = ['department', 'faculty', 'office', 'university'];
+
+      if (!data.role_id) {
+        errors.push('Role is required');
+      }
+      if (!data.org_unit_type || !validOrgUnitTypes.includes(data.org_unit_type)) {
+        errors.push(`Org unit type must be one of: ${validOrgUnitTypes.join(', ')}`);
+      }
+      if (!data.staff_id) {
+        errors.push('Staff member is required');
+      }
+
+      if (errors.length > 0) {
+        throw new ValidationError(errors);
+      }
+
+      return {
+        role_id: data.role_id,
+        org_unit_type: data.org_unit_type,
+        org_unit_id: data.org_unit_id || null,
+        staff_id: data.staff_id,
+        is_primary: data.is_primary !== undefined ? Boolean(data.is_primary) : true,
+        start_date: data.start_date || new Date().toISOString().slice(0, 10),
+        end_date: data.end_date || null,
+      };
+    },
+
+    update(data) {
+      const sanitized = {};
+      const validOrgUnitTypes = ['department', 'faculty', 'office', 'university'];
+
+      if (data.org_unit_type !== undefined) {
+        if (!validOrgUnitTypes.includes(data.org_unit_type)) {
+          throw new ValidationError([`Org unit type must be one of: ${validOrgUnitTypes.join(', ')}`]);
+        }
+        sanitized.org_unit_type = data.org_unit_type;
+      }
+      if (data.org_unit_id !== undefined) {
+        sanitized.org_unit_id = data.org_unit_id || null;
+      }
+      if (data.staff_id !== undefined) {
+        sanitized.staff_id = data.staff_id;
+      }
+      if (data.is_primary !== undefined) {
+        sanitized.is_primary = Boolean(data.is_primary);
+      }
+      if (data.end_date !== undefined) {
+        sanitized.end_date = data.end_date || null;
+      }
+
+      return sanitized;
+    },
+  },
 };
 
 module.exports = { validators, ValidationError };

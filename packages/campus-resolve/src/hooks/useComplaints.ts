@@ -27,6 +27,7 @@ export interface Complaint {
   priority: string;
   filed_by: string;
   assigned_to?: string;
+  can_reply?: boolean;
   created_at: string;
   updated_at: string;
   messages?: ComplaintMessage[];
@@ -39,6 +40,7 @@ export interface ComplaintMessage {
   content: string;
   sender_id: string;
   sender_type?: 'student' | 'staff';
+  message_type?: string;
   created_at: string;
   subject?: string;
   attachments?: ComplaintAttachment[];
@@ -81,6 +83,7 @@ const normalizeComplaint = (complaint: unknown): Complaint => {
     priority: toStringValue(item.priority, 'normal'),
     filed_by: toStringValue(item.filed_by, ''),
     assigned_to: item.assigned_to ? toStringValue(item.assigned_to) : undefined,
+    can_reply: item.can_reply !== false,
     created_at: toStringValue(item.created_at, new Date().toISOString()),
     updated_at: toStringValue(item.updated_at, toStringValue(item.created_at, new Date().toISOString())),
     messages: Array.isArray(item.messages)
@@ -89,6 +92,7 @@ const normalizeComplaint = (complaint: unknown): Complaint => {
           content: toStringValue(m.content, ''),
           sender_id: toStringValue(m.sender_id, ''),
           sender_type: m.sender_type ? toStringValue(m.sender_type) as any : undefined,
+          message_type: m.message_type ? toStringValue(m.message_type) : undefined,
           created_at: toStringValue(m.created_at, new Date().toISOString()),
           subject: m.subject ? toStringValue(m.subject) : undefined,
           isSent: m.sender_type === 'staff',
@@ -170,8 +174,8 @@ export const useComplaints = () => {
    }, [api]);
 
 // Update complaint status
-   const updateComplaintStatus = useCallback(async (id: string, status: string) => {
-     const response = await api.put<Complaint>(`/complaints/${id}`, { status }, {
+   const updateComplaintStatus = useCallback(async (id: string, status: string, reason?: string) => {
+     const response = await api.put<Complaint>(`/complaints/${id}`, { status, reason }, {
       showToast: true,
     });
 

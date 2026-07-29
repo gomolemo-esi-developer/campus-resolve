@@ -16,8 +16,10 @@ const fallbackCategoryLabels: Record<string, string> = {
   "course-complaint": "Course Complaint",
   "timetable": "Timetable Issue",
   "lecture-hall-lab": "Lecture Hall | Lab Issue",
-  "report-lecturer": "Report Lecturer",
+  "report-staff": "Report Staff",
 };
+
+const REPORT_STAFF_CATEGORY = "report-staff";
 
 const Complaint = () => {
    const navigate = useNavigate();
@@ -38,6 +40,8 @@ const Complaint = () => {
    const { uploadingFiles, handleFileUpload, removeFile, clearFiles, getCompletedFiles } = useFileUpload('complaint', tempId);
    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+   const [chainVariant, setChainVariant] = useState<"lecturer" | "supervisor" | "">("");
+   const isReportStaff = category === REPORT_STAFF_CATEGORY;
 
 useEffect(() => {
   void fetchComplaintTypes();
@@ -70,6 +74,10 @@ useEffect(() => {
       errors.category = "Category is required";
     }
 
+    if (isReportStaff && !chainVariant) {
+      errors.chainVariant = "Please choose who you are reporting";
+    }
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -100,6 +108,7 @@ useEffect(() => {
          title: title.trim(),
          description: message.trim(),
          category: category,
+         chain_variant: isReportStaff ? chainVariant || undefined : undefined,
          attachments: completedFiles.map((file) => ({
            name: file.name,
            fileType: file.type,
@@ -192,6 +201,42 @@ useEffect(() => {
 
         {/* Message Form */}
          <form onSubmit={handleSubmit} className="bg-card rounded-lg p-4 md:p-8 space-y-2 md:space-y-6 shadow-sm shadow-white">
+            {isReportStaff && (
+              <div className="space-y-2 pb-2">
+                <span className="text-sm font-medium text-foreground">Who are you reporting?</span>
+                <div className="flex gap-4">
+                  {(["lecturer", "supervisor"] as const).map((option) => (
+                    <label
+                      key={option}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-md border cursor-pointer capitalize transition-colors ${
+                        chainVariant === option
+                          ? "border-primary bg-primary/10 text-foreground"
+                          : "border-border text-muted-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="chainVariant"
+                        value={option}
+                        checked={chainVariant === option}
+                        onChange={() => {
+                          setChainVariant(option);
+                          if (validationErrors.chainVariant) {
+                            setValidationErrors((prev) => ({ ...prev, chainVariant: "" }));
+                          }
+                        }}
+                        className="sr-only"
+                      />
+                      {option}
+                    </label>
+                  ))}
+                </div>
+                {validationErrors.chainVariant && (
+                  <p className="text-xs text-destructive">{validationErrors.chainVariant}</p>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2">
               <input
                 type="text"

@@ -9,6 +9,7 @@ import { FileUploadProgress, useFileUpload } from "@/components/FileUploadProgre
 import { toast } from "sonner";
 import { MobileHeader } from "@/components/MobileHeader";
 import { MobileDrawer } from "@/components/MobileDrawer";
+import { LevelDivider } from "@/components/LevelDivider";
 import { Spinner } from "@/components/ui/spinner";
 import { getDownloadUrl, getDownloadUrlByKey } from "@/lib/attachmentUpload";
 
@@ -303,6 +304,7 @@ const MessageDetail = () => {
           sender: threadMessage.sender_id === message.filed_by ? 'user' : 'staff',
           text: threadMessage.subject || '',
           content: threadMessage.content,
+          messageType: threadMessage.message_type,
           attachments: (threadMessage.attachments || []).map((attachment) =>
             normalizeAttachment(asAttachmentRecord(attachment))
           ),
@@ -431,6 +433,9 @@ const MessageDetail = () => {
         {/* Content */}
         <div className="space-y-6">
 
+        {/* Level indicator */}
+        <LevelDivider label="Level 1" />
+
         {/* Original Complaint Message - Student (Black) */}
         <div className="flex justify-end">
           <div className="max-w-[80%] space-y-3">
@@ -478,6 +483,12 @@ const MessageDetail = () => {
 
         {/* Responses - Student (user) = black, Educator (admin) = white */}
         {responseItems.map((response, index) => {
+          if ((response as any).messageType === "escalation") {
+            return <LevelDivider key={index} label={response.text} note={response.content} />;
+          }
+          if ((response as any).messageType === "resolution") {
+            return <LevelDivider key={index} label={response.content} />;
+          }
           const isStudent = response.sender === "user";
           return (
             <div key={index} className={`flex ${isStudent ? 'justify-end' : 'justify-start'}`}>
@@ -511,7 +522,11 @@ const MessageDetail = () => {
 
         </div>
 
-        {/* Reply Form - matches Complaint page styling */}
+        {message.can_reply === false ? (
+          <div className="mt-8 text-center text-sm text-muted-foreground py-4">
+            This complaint has been resolved. The conversation is closed.
+          </div>
+        ) : (
         <form onSubmit={handleReplySubmit} className="mt-8 bg-card rounded-lg p-4 md:p-8 space-y-2 md:space-y-6 shadow-sm shadow-white">
           <div className="space-y-2">
             <input
@@ -590,6 +605,7 @@ const MessageDetail = () => {
             </Button>
           </div>
         </form>
+        )}
       </div>
     </MainLayout>
   );

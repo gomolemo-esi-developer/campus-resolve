@@ -1,51 +1,10 @@
 import { useState, ReactNode } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { MessageButton } from "@/components/MessageButton";
-import { BookOpen, Users, ChevronDown, ChevronRight, GraduationCap, LogOut } from "lucide-react";
+import { ChevronDown, ChevronRight, GraduationCap, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@shared/contexts/AuthContext";
-
-const menuItems = [{
-  category: "General",
-  subtitle: "Student & Campus",
-  icon: Users,
-  subcategories: [{
-    title: "Student Services",
-    path: "/complaint",
-    param: "student-services",
-    icon: Users
-  }, {
-    title: "Campus Facilities",
-    path: "/complaint",
-    param: "campus-facilities",
-    icon: Users
-  }]
-}, {
-  category: "Academic",
-  subtitle: "Courses & Learning",
-  icon: BookOpen,
-  subcategories: [{
-    title: "Course Complaint",
-    path: "/complaint",
-    param: "course-complaint",
-    icon: BookOpen
-  }, {
-    title: "Timetable",
-    path: "/complaint",
-    param: "timetable",
-    icon: BookOpen
-  }, {
-    title: "Lecture Hall | Lab",
-    path: "/complaint",
-    param: "lecture-hall-lab",
-    icon: BookOpen
-  }, {
-    title: "Report Lecturer",
-    path: "/complaint",
-    param: "report-lecturer",
-    icon: BookOpen
-  }]
-}];
+import { menuItems } from "@/constants/menuItems";
 
 
 interface MainLayoutProps {

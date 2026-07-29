@@ -132,7 +132,7 @@ app.get('/api/voice/complaint-types', authMiddleware, async (req, res) => {
     { id: 'ct-3', key: 'course-complaint', label: 'Course Complaint', description: 'Course delivery, content and academic support complaints', isActive: true },
     { id: 'ct-4', key: 'timetable', label: 'Timetable Issue', description: 'Scheduling and timetable conflict complaints', isActive: true },
     { id: 'ct-5', key: 'lecture-hall-lab', label: 'Lecture Hall | Lab Issue', description: 'Lecture venue and lab environment complaints', isActive: true },
-    { id: 'ct-6', key: 'report-lecturer', label: 'Report Lecturer', description: 'Lecturer conduct or delivery complaints', isActive: true },
+    { id: 'ct-6', key: 'report-staff', label: 'Report Staff', description: 'Staff (lecturer or supervisor) conduct or delivery complaints', isActive: true },
   ];
 
   return res.json({
@@ -550,7 +550,7 @@ app.post('/api/voice/messages/:complaintId/reply', authMiddleware, async (req, r
       if (String(error.message || '').toLowerCase().includes('not found')) {
         return res.status(404).json({ success: false, error: 'Not found', message: error.message });
       }
-      if (String(error.message || '').toLowerCase().includes('unauthorized')) {
+      if (error.statusCode === 403 || String(error.message || '').toLowerCase().includes('unauthorized')) {
         return res.status(403).json({ success: false, error: 'Forbidden', message: error.message });
       }
       console.error('[VOICE MESSAGES] Reply fallback to mock due to error:', error.message);

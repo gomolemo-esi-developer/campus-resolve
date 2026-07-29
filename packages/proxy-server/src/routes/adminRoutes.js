@@ -15,6 +15,10 @@ const {
   residenceController,
   extracurricularController,
   studentController,
+  officeController,
+  escalationChainController,
+  escalationChainStepController,
+  roleHolderController,
 } = require('../controllers/adminController');
 
 const router = express.Router();
@@ -115,6 +119,46 @@ router.get('/roles/:id', roleController.getById);
 router.put('/roles/:id', roleController.update);
 router.delete('/roles/:id', roleController.delete);
 router.delete('/roles', roleController.deleteMany);
+
+// ============================================================================
+// OFFICES ROUTES
+// ============================================================================
+router.get('/offices', officeController.getAll);
+router.post('/offices', officeController.create);
+router.get('/offices/:id', officeController.getById);
+router.put('/offices/:id', officeController.update);
+router.delete('/offices/:id', officeController.delete);
+router.delete('/offices', officeController.deleteMany);
+
+// ============================================================================
+// ESCALATION CHAINS ROUTES
+// ============================================================================
+router.get('/escalation-chains', escalationChainController.getAll);
+router.post('/escalation-chains', escalationChainController.create);
+router.get('/escalation-chains/:id', escalationChainController.getById);
+router.put('/escalation-chains/:id', escalationChainController.update);
+router.delete('/escalation-chains/:id', escalationChainController.delete);
+router.delete('/escalation-chains', escalationChainController.deleteMany);
+
+// ============================================================================
+// ESCALATION CHAIN STEPS ROUTES
+// ============================================================================
+router.get('/escalation-chain-steps', escalationChainStepController.getAll);
+router.post('/escalation-chain-steps', escalationChainStepController.create);
+router.get('/escalation-chain-steps/:id', escalationChainStepController.getById);
+router.put('/escalation-chain-steps/:id', escalationChainStepController.update);
+router.delete('/escalation-chain-steps/:id', escalationChainStepController.delete);
+router.delete('/escalation-chain-steps', escalationChainStepController.deleteMany);
+
+// ============================================================================
+// ROLE HOLDERS ROUTES
+// ============================================================================
+router.get('/role-holders', roleHolderController.getAll);
+router.post('/role-holders', roleHolderController.create);
+router.get('/role-holders/:id', roleHolderController.getById);
+router.put('/role-holders/:id', roleHolderController.update);
+router.delete('/role-holders/:id', roleHolderController.delete);
+router.delete('/role-holders', roleHolderController.deleteMany);
 
 // ============================================================================
 // STAFF ROUTES

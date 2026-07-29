@@ -812,6 +812,121 @@ export const roleApi = {
 };
 
 // ============================================================================
+// ESCALATION STRUCTURE TYPES
+// ============================================================================
+
+export interface OfficeData {
+    id: string;
+    name: string;
+    category_key: string;
+    campus_id: string | null;
+}
+
+export interface EscalationChainData {
+    id: string;
+    category_key: string;
+    variant: string | null;
+    scope_type: "department" | "faculty" | "office" | "university";
+}
+
+export interface EscalationChainStepData {
+    id: string;
+    chain_id: string;
+    step_order: string;
+    role_id: string;
+    active: boolean;
+}
+
+export interface RoleHolderData {
+    id: string;
+    role_id: string;
+    org_unit_type: "department" | "faculty" | "office" | "university";
+    org_unit_id: string | null;
+    staff_id: string;
+    is_primary: boolean;
+}
+
+function makeCrudApi<T extends { id: string }>(resourcePath: string) {
+    return {
+        create: async (payload: Omit<T, "id">): Promise<T> => {
+            const response = await fetch(`${API_BASE}/${resourcePath}`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify(payload),
+            });
+            const result = await handleResponse<T>(response);
+            return result.data!;
+        },
+
+        list: async (
+            search = "",
+            page = 1,
+            limit = 20
+        ): Promise<{ data: T[]; count: number; total: number; page: number; limit: number }> => {
+            const params = new URLSearchParams({
+                ...(search && { search }),
+                page: page.toString(),
+                limit: limit.toString(),
+            });
+            const response = await fetch(`${API_BASE}/${resourcePath}?${params}`, {
+                method: "GET",
+                headers: getHeaders(),
+            });
+            const result = await handleResponse<T[]>(response);
+            return {
+                data: result.data!,
+                count: result.count!,
+                total: result.total!,
+                page: result.page!,
+                limit: result.limit!,
+            };
+        },
+
+        get: async (id: string): Promise<T> => {
+            const response = await fetch(`${API_BASE}/${resourcePath}/${id}`, {
+                method: "GET",
+                headers: getHeaders(),
+            });
+            const result = await handleResponse<T>(response);
+            return result.data!;
+        },
+
+        update: async (id: string, payload: Partial<Omit<T, "id">>): Promise<T> => {
+            const response = await fetch(`${API_BASE}/${resourcePath}/${id}`, {
+                method: "PUT",
+                headers: getHeaders(),
+                body: JSON.stringify(payload),
+            });
+            const result = await handleResponse<T>(response);
+            return result.data!;
+        },
+
+        delete: async (id: string): Promise<void> => {
+            const response = await fetch(`${API_BASE}/${resourcePath}/${id}`, {
+                method: "DELETE",
+                headers: getHeaders(),
+            });
+            await handleResponse(response);
+        },
+
+        batchDelete: async (ids: string[]): Promise<{ deleted: number }> => {
+            const response = await fetch(`${API_BASE}/${resourcePath}`, {
+                method: "DELETE",
+                headers: getHeaders(),
+                body: JSON.stringify({ ids }),
+            });
+            const result = await handleResponse<{ deleted: number }>(response);
+            return result.data!;
+        },
+    };
+}
+
+export const officeApi = makeCrudApi<OfficeData>("offices");
+export const escalationChainApi = makeCrudApi<EscalationChainData>("escalation-chains");
+export const escalationChainStepApi = makeCrudApi<EscalationChainStepData>("escalation-chain-steps");
+export const roleHolderApi = makeCrudApi<RoleHolderData>("role-holders");
+
+// ============================================================================
 // EXTRACURRICULAR API
 // ============================================================================
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, BookOpen, Users, ChevronDown, ChevronRight, GraduationCap, LogOut, MessageSquare, User } from "lucide-react";
+import { X, ChevronDown, ChevronRight, GraduationCap, LogOut, MessageSquare, User } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@shared/contexts/AuthContext";
 import {
@@ -9,48 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-
-const menuItems = [{
-  category: "General",
-  subtitle: "Student & Campus",
-  icon: Users,
-  subcategories: [{
-    title: "Student Services",
-    path: "/complaint",
-    param: "student-services",
-    icon: Users
-  }, {
-    title: "Campus Facilities",
-    path: "/complaint",
-    param: "campus-facilities",
-    icon: Users
-  }]
-}, {
-  category: "Academic",
-  subtitle: "Courses & Learning",
-  icon: BookOpen,
-  subcategories: [{
-    title: "Course Complaint",
-    path: "/complaint",
-    param: "course-complaint",
-    icon: BookOpen
-  }, {
-    title: "Timetable",
-    path: "/complaint",
-    param: "timetable",
-    icon: BookOpen
-  }, {
-    title: "Lecture Hall | Lab",
-    path: "/complaint",
-    param: "lecture-hall-lab",
-    icon: BookOpen
-  }, {
-    title: "Report Lecturer",
-    path: "/complaint",
-    param: "report-lecturer",
-    icon: BookOpen
-  }]
-}];
+import { menuItems } from "@/constants/menuItems";
 
 interface MobileDrawerProps {
   open: boolean;

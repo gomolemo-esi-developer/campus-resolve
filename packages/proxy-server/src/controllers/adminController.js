@@ -2457,6 +2457,12 @@ const studentController = {
   },
 };
 
+// Escalation structure controllers (Phase 1)
+const officeController = AdminController.createResourceController('offices', validators.office);
+const escalationChainController = AdminController.createResourceController('escalation_chains', validators.escalationChain);
+const escalationChainStepController = AdminController.createResourceController('escalation_chain_steps', validators.escalationChainStep);
+const roleHolderController = AdminController.createResourceController('role_holders', validators.roleHolder);
+
 module.exports = {
   AdminController,
   campusController,
@@ -2469,4 +2475,8 @@ module.exports = {
   residenceController,
   extracurricularController,
   studentController,
+  officeController,
+  escalationChainController,
+  escalationChainStepController,
+  roleHolderController,
 };
