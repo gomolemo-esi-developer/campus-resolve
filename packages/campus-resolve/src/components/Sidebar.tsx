@@ -33,7 +33,7 @@ export const Sidebar = () => {
         variant="ghost"
         size="icon"
         onClick={() => setIsOpen(true)}
-        className="fixed top-4 left-4 z-50 lg:hidden bg-background/80 backdrop-blur-sm shadow-sm"
+        className="fixed top-4 left-4 z-50 lg:hidden rounded-full bg-background/80 text-gray-600 backdrop-blur-sm shadow-sm hover:bg-gray-100 hover:text-gray-800 active:scale-95 transition-all duration-300 ease-out"
       >
         <Menu className="w-5 h-5" />
       </Button>
@@ -57,7 +57,7 @@ export const Sidebar = () => {
           variant="ghost"
           size="icon"
           onClick={() => setIsOpen(false)}
-          className="absolute top-4 right-4 lg:hidden"
+          className="absolute top-4 right-4 lg:hidden rounded-full text-gray-600 hover:bg-gray-100 hover:text-gray-800 active:scale-95 transition-all duration-300 ease-out"
         >
           <X className="w-5 h-5" />
         </Button>
@@ -78,8 +78,8 @@ export const Sidebar = () => {
                 <NavLink
                   to={item.url}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-full text-foreground/70 hover:bg-secondary/10 hover:text-secondary transition-colors relative"
-                  activeClassName="bg-secondary text-background hover:bg-secondary font-medium before:content-[''] before:absolute before:left-[-16px] before:top-0 before:bottom-0 before:w-1 before:bg-secondary before:rounded-r-full"
+                  className="flex items-center gap-3 px-4 py-3 rounded-full text-foreground/70 hover:bg-gray-100 hover:text-foreground transition-colors relative"
+                  activeClassName="bg-secondary text-background hover:!bg-secondary hover:!text-background font-medium before:content-[''] before:absolute before:left-[-16px] before:top-0 before:bottom-0 before:w-1 before:bg-secondary before:rounded-r-full"
                 >
                   <item.icon className="w-5 h-5" />
                   <span>{item.title}</span>
@@ -93,7 +93,7 @@ export const Sidebar = () => {
         <div className="p-4">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-full text-foreground/70 hover:bg-secondary/10 hover:text-secondary transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-full text-foreground/70 hover:bg-gray-100 hover:text-foreground transition-colors"
           >
             <LogOut className="w-5 h-5" />
             <span>Logout</span>

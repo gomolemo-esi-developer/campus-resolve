@@ -52,7 +52,7 @@ export const ViewNoteModal = ({
               size="icon"
               variant="ghost"
               onClick={handleEdit}
-              className="flex-shrink-0 h-9 w-9 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="flex-shrink-0 h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-all duration-300 ease-out"
             >
               <Pencil className="w-4 h-4" />
             </Button>

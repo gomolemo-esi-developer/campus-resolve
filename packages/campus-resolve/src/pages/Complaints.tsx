@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "@/components/Sidebar";
 import { InboxPanel } from "@/components/InboxPanel";
 import { MessageDetail } from "@/components/MessageDetail";
@@ -13,9 +14,84 @@ import {
   type Conversation,
   type MessageAttachment,
 } from "@/contexts/ConversationsContext";
-import { useConversations, useNotes, useComplaints } from "@/hooks";
+import { useConversations, useNotes, useComplaints, type Complaint } from "@/hooks";
+
+// Normalize attachments with storageKey support
+const normalizeAttachments = (atts: any[] | undefined): MessageAttachment[] | undefined => {
+  if (!Array.isArray(atts)) return undefined;
+  return atts.map((att) => ({
+    type:
+      att?.file_type === "image"
+        ? "image"
+        : att?.file_type === "pdf"
+          ? "pdf"
+          : att?.file_type === "excel"
+            ? "excel"
+            : att?.file_type === "word"
+              ? "word"
+              : att?.type === "pdf"
+                ? "pdf"
+                : att?.type === "image"
+                  ? "image"
+                  : att?.type === "excel"
+                    ? "excel"
+                    : att?.type === "word"
+                      ? "word"
+                      : "document",
+    name: att?.name || att?.file_name || "Attachment",
+    url: att?.url || att?.file_path || undefined,
+    storageKey: att?.storage_key || undefined,
+    id: att?.id || undefined,
+    size: att?.size || att?.file_size || undefined,
+    mimeType: att?.mimeType || att?.mime_type || undefined,
+  }));
+};
+
+const mapComplaintToConversation = (complaint: Complaint): Conversation => ({
+  id: complaint.id,
+  sender: complaint.student_name || "Student",
+  subject: complaint.title,
+  date: new Date(complaint.created_at).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }),
+  time: new Date(complaint.created_at).toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }),
+  relativeTime: "Complaint",
+  priority: complaint.priority as "normal" | "urgent" | "emergency",
+  category: complaint.category,
+  status: complaint.status,
+  preview: complaint.description.substring(0, 50) + "...",
+  messages: (complaint.messages || []).map((msg) => ({
+    id: msg.id,
+    subject: msg.subject || complaint.title,
+    date: new Date(msg.created_at).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }),
+    time: new Date(msg.created_at).toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }),
+    content: msg.content,
+    isSent: msg.sender_type === "staff",
+    attachments: normalizeAttachments(msg.attachments),
+    message_type: msg.message_type,
+  })),
+  type: "complaint" as const,
+  unread: complaint.status === "open",
+  canReply: complaint.can_reply,
+});
 
 const Complaints = () => {
+  const navigate = useNavigate();
+  const { id: complaintIdParam } = useParams<{ id?: string }>();
   const [isComposeOpen, setIsComposeOpen] = useState(false);
   const composeRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -35,161 +111,45 @@ const Complaints = () => {
   } = useComplaints();
   const [isEscalating, setIsEscalating] = useState(false);
   const [isResolving, setIsResolving] = useState(false);
+  const [isInboxLoading, setIsInboxLoading] = useState(true);
+  const [isThreadLoading, setIsThreadLoading] = useState(false);
 
 // Convert complaints to conversations format
   useEffect(() => {
     if (complaints.length > 0) {
-      const complaintConversations: Conversation[] = complaints.map(
-        (complaint) => {
-          // Normalize attachments with storageKey support
-          const normalizeAttachments = (atts: any[] | undefined): MessageAttachment[] | undefined => {
-            if (!Array.isArray(atts)) return undefined;
-            return atts.map((att) => ({
-              type:
-                att?.file_type === "image"
-                  ? "image"
-                  : att?.file_type === "pdf"
-                    ? "pdf"
-                    : att?.file_type === "excel"
-                      ? "excel"
-                      : att?.file_type === "word"
-                        ? "word"
-                        : att?.type === "pdf"
-                          ? "pdf"
-                          : att?.type === "image"
-                            ? "image"
-                            : att?.type === "excel"
-                              ? "excel"
-                              : att?.type === "word"
-                                ? "word"
-                                : "document",
-              name: att?.name || att?.file_name || "Attachment",
-              url: att?.url || att?.file_path || undefined,
-              storageKey: att?.storage_key || undefined,
-              id: att?.id || undefined,
-              size: att?.size || att?.file_size || undefined,
-              mimeType: att?.mimeType || att?.mime_type || undefined,
-            }));
-          };
-
-          return {
-            id: complaint.id,
-            sender: complaint.student_name || "Student",
-            subject: complaint.title,
-            date: new Date(complaint.created_at).toLocaleDateString("en-GB", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            }),
-            time: new Date(complaint.created_at).toLocaleTimeString("en-GB", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            }),
-            relativeTime: "Complaint",
-            priority: complaint.priority as "normal" | "urgent" | "emergency",
-            category: complaint.category,
-            status: complaint.status,
-            preview: complaint.description.substring(0, 50) + "...",
-            messages: (complaint.messages || []).map((msg) => ({
-              id: msg.id,
-              subject: msg.subject || complaint.title,
-              date: new Date(msg.created_at).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              }),
-              time: new Date(msg.created_at).toLocaleTimeString("en-GB", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-              }),
-              content: msg.content,
-              isSent: msg.sender_type === "staff",
-              attachments: normalizeAttachments(msg.attachments),
-              message_type: msg.message_type,
-            })),
-            type: "complaint" as const,
-            unread: complaint.status === "open",
-          };
-        },
-      );
+      const complaintConversations: Conversation[] = complaints.map(mapComplaintToConversation);
 
       setConversations((prev) => {
+        const byId = new Map(complaintConversations.map((c) => [c.id, c]));
+        const merged = prev.map((c) =>
+          c.type === "complaint" && byId.has(c.id) ? byId.get(c.id)! : c,
+        );
         const existingIds = new Set(
           prev.filter((c) => c.type === "complaint").map((c) => c.id),
         );
         const newComplaints = complaintConversations.filter(
           (c) => !existingIds.has(c.id),
         );
-        return [
-          ...prev.filter((c) => c.type !== "complaint"),
-          ...newComplaints,
-        ];
+        return [...merged, ...newComplaints];
       });
     }
   }, [complaints, setConversations]);
 
   useEffect(() => {
     fetchNotes();
-    fetchAssignedComplaints();
+    fetchAssignedComplaints().finally(() => setIsInboxLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const refreshComplaintMessages = useMemo(
     () => async (complaintId: string) => {
-      const fullComplaint = await fetchComplaint(complaintId);
+      setIsThreadLoading(true);
+      const fullComplaint = await fetchComplaint(complaintId).finally(() =>
+        setIsThreadLoading(false),
+      );
       if (!fullComplaint) return;
 
-      // Normalize attachments with storageKey support
-      const normalizeAttachments = (atts: any[] | undefined): MessageAttachment[] | undefined => {
-        if (!Array.isArray(atts)) return undefined;
-        return atts.map((att) => ({
-          type:
-            att?.file_type === "image"
-              ? "image"
-              : att?.file_type === "pdf"
-                ? "pdf"
-                : att?.file_type === "excel"
-                  ? "excel"
-                  : att?.file_type === "word"
-                    ? "word"
-                    : att?.type === "pdf"
-                      ? "pdf"
-                      : att?.type === "image"
-                        ? "image"
-                        : att?.type === "excel"
-                          ? "excel"
-                          : att?.type === "word"
-                            ? "word"
-                            : "document",
-          name: att?.name || att?.file_name || "Attachment",
-          url: att?.url || att?.file_path || undefined,
-          storageKey: att?.storage_key || undefined,
-          id: att?.id || undefined,
-          size: att?.size || att?.file_size || undefined,
-          mimeType: att?.mimeType || att?.mime_type || undefined,
-        }));
-      };
-
-      const updatedMessages = (fullComplaint.messages || []).map((msg) => ({
-        id: msg.id,
-        subject: msg.subject || fullComplaint.title,
-        date: new Date(msg.created_at).toLocaleDateString("en-GB", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        }),
-        time: new Date(msg.created_at).toLocaleTimeString("en-GB", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        }),
-        content: msg.content,
-        isSent: msg.sender_type === "staff",
-        attachments: normalizeAttachments(msg.attachments),
-        message_type: msg.message_type,
-      }));
+      const updatedMessages = mapComplaintToConversation(fullComplaint).messages;
 
       setConversations((prev) =>
         prev.map((conv) =>
@@ -207,6 +167,55 @@ const Complaints = () => {
     },
     [fetchComplaint, setConversations, setSelectedConversation],
   );
+
+  // Keep selectedConversation in sync with the :id route param — this is what makes
+  // opening a complaint produce a real, shareable/bookmarkable/refreshable URL.
+  useEffect(() => {
+    if (!complaintIdParam) {
+      if (selectedConversation) setSelectedConversation(null);
+      return;
+    }
+
+    if (selectedConversation?.id === complaintIdParam) return;
+
+    const match = contextConversations.conversations.find(
+      (c) => c.type === "complaint" && c.id === complaintIdParam,
+    );
+    if (match) {
+      setSelectedConversation(match);
+      return;
+    }
+
+    // Not in the loaded list yet — wait for the initial fetch before deciding it's missing.
+    if (isInboxLoading) return;
+
+    let cancelled = false;
+    (async () => {
+      const complaint = await fetchComplaint(complaintIdParam);
+      if (cancelled) return;
+      if (!complaint) {
+        navigate("/complaints", { replace: true });
+        return;
+      }
+      const conversation = mapComplaintToConversation(complaint);
+      setConversations((prev) =>
+        prev.some((c) => c.id === conversation.id) ? prev : [...prev, conversation],
+      );
+      setSelectedConversation(conversation);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    complaintIdParam,
+    contextConversations.conversations,
+    isInboxLoading,
+    selectedConversation?.id,
+    fetchComplaint,
+    navigate,
+    setConversations,
+    setSelectedConversation,
+  ]);
 
   useEffect(() => {
     if (selectedConversation?.type === "complaint") {
@@ -330,13 +339,14 @@ const handleSendMessage = async (message: {
         unread: false,
       });
       setSelectedConversation(newConversation);
+      navigate(`/complaints/${newConversation.id}`);
     }
     setIsComposeOpen(false);
   };
 
   const handleBackToLanding = () => {
-    setSelectedConversation(null);
     setIsComposeOpen(false);
+    navigate("/complaints");
   };
 
   const handleEscalate = async () => {
@@ -419,6 +429,22 @@ const handleSendMessage = async (message: {
                       {selectedConversation.type === "complaint" && (
                         <LevelDivider label="Level 1" />
                       )}
+                      {isThreadLoading && selectedConversation.messages.length === 0 && (
+                        <div className="space-y-4 md:space-y-6">
+                          {[0, 1].map((i) => (
+                            <div key={i} className={`flex ${i === 1 ? "justify-end" : "justify-start"}`}>
+                              <div className="w-[85%] animate-pulse rounded-lg bg-white p-6 space-y-3 shadow-sm">
+                                <div className="flex items-center justify-between">
+                                  <div className="h-4 w-1/3 rounded bg-gray-200" />
+                                  <div className="h-3 w-16 rounded bg-gray-200" />
+                                </div>
+                                <div className="h-3 w-full rounded bg-gray-100" />
+                                <div className="h-3 w-2/3 rounded bg-gray-100" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       {selectedConversation.messages.map((message) =>
                         message.message_type === "escalation" ? (
                           <LevelDivider key={message.id} label={message.subject} note={message.content} />
@@ -429,7 +455,7 @@ const handleSendMessage = async (message: {
                           key={message.id}
                           className={`flex ${message.isSent ? "justify-end" : "justify-start"}`}
                         >
-                          <div className="w-[70%]">
+                          <div className="w-[85%]">
                             <MessageDetail
                               subject={message.subject}
                               date={message.date}
@@ -505,7 +531,7 @@ const handleSendMessage = async (message: {
                           variant="ghost"
                           size="icon"
                           onClick={() => setIsComposeOpen(false)}
-                          className="absolute top-4 right-4 text-muted-foreground hover:text-secondary hover:bg-secondary/10 transition-colors duration-200"
+                          className="absolute top-4 right-4 rounded-full text-muted-foreground hover:text-foreground hover:bg-gray-100 active:scale-95 transition-all duration-300 ease-out"
                         >
                           <X className="w-5 h-5" />
                         </Button>
@@ -525,7 +551,7 @@ const handleSendMessage = async (message: {
         </div>
       </main>
 
-      <InboxPanel />
+      <InboxPanel isLoading={isInboxLoading} />
     </div>
   );
 };

@@ -271,7 +271,7 @@ const handleSend = () => {
       )}
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center justify-end gap-1.5">
         <input
           ref={fileInputRef}
           type="file"
@@ -280,20 +280,20 @@ const handleSend = () => {
           className="hidden"
           accept="image/*,.pdf"
         />
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="icon"
           onClick={() => fileInputRef.current?.click()}
-          className="text-secondary hover:text-secondary hover:bg-secondary/10"
+          className="rounded-full text-secondary hover:text-secondary hover:bg-gray-100 active:scale-95 transition-all duration-300 ease-out"
         >
           <Paperclip className="w-5 h-5" />
         </Button>
         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
           <PopoverTrigger asChild>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="icon"
-              className="text-secondary hover:text-secondary hover:bg-secondary/10"
+              className="rounded-full text-secondary hover:text-secondary hover:bg-gray-100 active:scale-95 transition-all duration-300 ease-out"
             >
               <Plus className="w-5 h-5" />
             </Button>
@@ -371,12 +371,12 @@ const handleSend = () => {
             </ScrollArea>
           </PopoverContent>
         </Popover>
-<Button 
-           variant="ghost" 
+<Button
+           variant="ghost"
            size="icon"
            onClick={handleSend}
            disabled={(!messageText.trim() && attachments.length === 0) || attachments.some(a => a.progress < 100)}
-           className="text-secondary hover:text-secondary hover:bg-secondary/10 disabled:opacity-50 disabled:cursor-not-allowed"
+           className="rounded-full text-secondary hover:text-secondary hover:bg-gray-100 active:scale-95 transition-all duration-300 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
          >
            <Send className="w-5 h-5" />
          </Button>

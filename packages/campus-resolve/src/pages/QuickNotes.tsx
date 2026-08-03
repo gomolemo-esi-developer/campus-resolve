@@ -258,7 +258,7 @@ const getFileIcon = (fileType: string) => {
               <div className="hidden sm:flex gap-2">
                 <Button
                   onClick={() => setIsAddNoteModalOpen(true)}
-                  className="bg-foreground hover:bg-foreground/90 text-background transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md"
+                  className="bg-foreground hover:bg-foreground/90 active:scale-95 text-background font-normal shadow-md hover:shadow-lg transition-all duration-300 ease-out rounded-full"
                 >
                   <StickyNote className="w-4 h-4 mr-2" />
                   Add Note
@@ -266,7 +266,7 @@ const getFileIcon = (fileType: string) => {
                 <Button
                   onClick={() => setIsAttachModalOpen(true)}
                   variant="outline"
-                  className="border-foreground/25 text-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-200 hover:scale-105"
+                  className="border-foreground/25 text-foreground hover:bg-foreground hover:text-background hover:border-foreground active:scale-95 shadow-sm hover:shadow-md transition-all duration-300 ease-out rounded-full"
                 >
                   <Paperclip className="w-4 h-4 mr-2" />
                   Add File
@@ -392,12 +392,12 @@ const getFileIcon = (fileType: string) => {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel className="transition-all duration-200 hover:bg-muted">
+                  <AlertDialogCancel className="rounded-full transition-all duration-300 ease-out active:scale-95 hover:bg-muted">
                     Cancel
                   </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDeleteItem}
-                    className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                    className="bg-destructive hover:bg-destructive/90 active:scale-95 text-destructive-foreground rounded-full transition-all duration-300 ease-out"
                   >
                     Delete
                   </AlertDialogAction>
@@ -479,18 +479,18 @@ const getFileIcon = (fileType: string) => {
                   {/* Action Buttons */}
                   <div className="flex gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                     {item.type === "note" && (
-                      <Button 
-                        size="icon" 
+                      <Button
+                        size="icon"
                         onClick={() => handleEditItem(item)}
-                        className="bg-foreground hover:bg-foreground/90 text-background rounded-lg h-10 w-10 min-h-[44px] min-w-[44px] transition-all duration-200 hover:scale-105 shadow-sm"
+                        className="bg-foreground hover:bg-foreground/90 active:scale-95 text-background rounded-full h-10 w-10 min-h-[44px] min-w-[44px] transition-all duration-300 ease-out shadow-sm hover:shadow-md"
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>
                     )}
-                    <Button 
-                      size="icon" 
+                    <Button
+                      size="icon"
                       onClick={() => setDeleteItemId(item.id)}
-                      className="bg-foreground hover:bg-foreground/90 text-background rounded-lg h-10 w-10 min-h-[44px] min-w-[44px] transition-all duration-200 hover:scale-105 shadow-sm"
+                      className="bg-foreground hover:bg-foreground/90 active:scale-95 text-background rounded-full h-10 w-10 min-h-[44px] min-w-[44px] transition-all duration-300 ease-out shadow-sm hover:shadow-md"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

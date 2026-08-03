@@ -51,9 +51,28 @@ const formatDateDisplay = (dateString: string): string => {
 
 interface InboxPanelProps {
   onSelectConversation?: (conversation: Conversation) => void;
+  isLoading?: boolean;
 }
 
-export const InboxPanel = ({ onSelectConversation }: InboxPanelProps) => {
+const InboxSkeletonCard = () => (
+  <div className="mb-2 animate-pulse rounded-2xl border border-gray-200 bg-white p-4">
+    <div className="flex items-start justify-between gap-3">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <div className="h-8 w-8 shrink-0 rounded-full bg-gray-200" />
+        <div className="h-3.5 w-24 rounded bg-gray-200" />
+      </div>
+      <div className="h-3 w-10 rounded bg-gray-200" />
+    </div>
+    <div className="mt-3 flex gap-1.5">
+      <div className="h-4 w-14 rounded-full bg-gray-100" />
+      <div className="h-4 w-16 rounded-full bg-gray-100" />
+    </div>
+    <div className="mt-3 h-3.5 w-3/4 rounded bg-gray-200" />
+    <div className="mt-2 h-3 w-1/2 rounded bg-gray-100" />
+  </div>
+);
+
+export const InboxPanel = ({ onSelectConversation, isLoading }: InboxPanelProps) => {
   const navigate = useNavigate();
   const { conversations, selectedConversation, setSelectedConversation, markAsRead, unreadCount } = useConversations();
   const [search, setSearch] = useState("");
@@ -70,7 +89,7 @@ export const InboxPanel = ({ onSelectConversation }: InboxPanelProps) => {
     setSelectedConversation(conversation);
     markAsRead(conversation.id);
     onSelectConversation?.(conversation);
-    navigate("/complaints");
+    navigate(`/complaints/${conversation.id}`);
     setIsOpen(false);
   };
 
@@ -80,11 +99,11 @@ export const InboxPanel = ({ onSelectConversation }: InboxPanelProps) => {
         variant="ghost"
         size="icon"
         onClick={() => setIsOpen(true)}
-        className="fixed top-4 right-4 z-50 xl:hidden bg-background/80 backdrop-blur-sm shadow-sm"
+        className="fixed top-4 right-4 z-50 xl:hidden rounded-full bg-background/80 text-gray-600 backdrop-blur-sm shadow-sm hover:bg-gray-100 hover:text-gray-800 active:scale-95 transition-all duration-300 ease-out"
       >
         <Inbox className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-secondary text-secondary-foreground text-xs rounded-full flex items-center justify-center animate-pulse">
+          <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold text-secondary-foreground shadow-sm animate-pulse">
             {unreadCount}
           </span>
         )}
@@ -106,7 +125,7 @@ export const InboxPanel = ({ onSelectConversation }: InboxPanelProps) => {
           variant="ghost"
           size="icon"
           onClick={() => setIsOpen(false)}
-          className="absolute top-4 right-4 xl:hidden"
+          className="absolute top-4 right-4 xl:hidden rounded-full text-gray-600 hover:bg-gray-100 hover:text-gray-800 active:scale-95 transition-all duration-300 ease-out"
         >
           <X className="w-5 h-5" />
         </Button>
@@ -133,7 +152,13 @@ export const InboxPanel = ({ onSelectConversation }: InboxPanelProps) => {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {filteredConversations.length === 0 ? (
+            {isLoading && filteredConversations.length === 0 ? (
+              <>
+                <InboxSkeletonCard />
+                <InboxSkeletonCard />
+                <InboxSkeletonCard />
+              </>
+            ) : filteredConversations.length === 0 ? (
               <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-gray-200 p-10 text-center">
                 <Inbox className="h-7 w-7 text-gray-300" strokeWidth={1.6} />
                 <p className="text-sm font-medium text-foreground">No conversations yet</p>

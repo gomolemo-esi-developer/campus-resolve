@@ -58,15 +58,15 @@ interface MessageDetailProps {
     };
 
   return (
-    <div className={`${isSent ? 'bg-[#E8F0FE]' : 'bg-[#FFFFFF]'} p-6 rounded-lg space-y-4 shadow-sm`}>
-      <div className="flex items-start justify-between">
-        <h2 className="text-lg font-bold text-foreground">{subject}</h2>
-        <span className="text-secondary font-medium text-sm">{date} {time}</span>
+    <div className={`${isSent ? 'bg-gray-100 border border-gray-200' : 'bg-white border border-gray-100'} p-6 rounded-lg space-y-4 shadow-sm`}>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <h2 className="flex-1 min-w-0 break-words text-base font-semibold text-foreground">{subject}</h2>
+        <span className="shrink-0 whitespace-nowrap text-secondary font-medium text-xs">{date} {time}</span>
       </div>
       <p className="text-[#5F5F5F] leading-relaxed text-sm">{content}</p>
 
       {attachments && attachments.length > 0 && (
-        <div className="space-y-2 pt-4 border-t border-border">
+        <div className="space-y-2 pt-4 border-t border-gray-200">
           {attachments.map((attachment, index) => {
             const isLoading = loadingAttachmentId === String(attachment.id);
             

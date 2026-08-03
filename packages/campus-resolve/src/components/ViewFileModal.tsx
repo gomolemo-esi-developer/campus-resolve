@@ -104,14 +104,14 @@ export const ViewFileModal = ({
             <Button
               variant="outline"
               onClick={() => window.open(thumbnail, "_blank")}
-              className="gap-2"
+              className="gap-2 rounded-full active:scale-95 shadow-sm hover:shadow-md transition-all duration-300 ease-out"
             >
               <ExternalLink className="w-4 h-4" />
               Open Full Size
             </Button>
           )}
           <Button
-            className="gap-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+            className="gap-2 rounded-full bg-secondary hover:bg-secondary/90 active:scale-95 text-secondary-foreground shadow-md hover:shadow-lg transition-all duration-300 ease-out"
             disabled={isDownloading}
             onClick={async () => {
               // Use the download API for proper S3 presigned URLs

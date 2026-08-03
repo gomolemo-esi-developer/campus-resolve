@@ -150,11 +150,12 @@ export const AddNoteModal = ({ open, onOpenChange, onSave }: AddNoteModalProps) 
             </div>
             
             <div className="flex justify-end">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={addLink} 
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addLink}
                 disabled={!linkUrl.trim()}
+                className="rounded-full active:scale-95 transition-all duration-300 ease-out"
               >
                 Add Link
               </Button>
@@ -172,12 +173,12 @@ export const AddNoteModal = ({ open, onOpenChange, onSave }: AddNoteModalProps) 
                       <p className="font-medium truncate">{link.label}</p>
                       <p className="text-muted-foreground truncate text-xs">{link.url}</p>
                     </div>
-                    <Button 
-                      type="button" 
-                      size="sm" 
-                      variant="ghost" 
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
                       onClick={() => removeLink(link.id)}
-                      className="text-destructive hover:text-destructive"
+                      className="rounded-full text-destructive hover:text-destructive active:scale-95 transition-all duration-300 ease-out"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -192,14 +193,14 @@ export const AddNoteModal = ({ open, onOpenChange, onSave }: AddNoteModalProps) 
           <Button
             variant="outline"
             onClick={handleCancel}
-            className="border-foreground/25 text-foreground transition-all duration-200 hover:bg-gray-100"
+            className="rounded-full border-foreground/25 text-foreground active:scale-95 shadow-sm hover:shadow-md transition-all duration-300 ease-out hover:bg-gray-100"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSave}
             disabled={!canSave}
-            className="bg-foreground hover:bg-foreground/90 text-background transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-full bg-foreground hover:bg-foreground/90 active:scale-95 text-background shadow-md hover:shadow-lg transition-all duration-300 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Save Note
           </Button>

@@ -31,6 +31,7 @@ const App = () => (
                   <ProtectedRoute requiredRoles={["staff"]}>
                     <Routes>
                       <Route path="/complaints" element={<Complaints />} />
+                      <Route path="/complaints/:id" element={<Complaints />} />
                       <Route
                         path="/dashboard"
                         element={<Navigate to="/complaints" replace />}
