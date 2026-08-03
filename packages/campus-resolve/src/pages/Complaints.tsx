@@ -413,7 +413,7 @@ const handleSendMessage = async (message: {
                       <Button
                         variant="ghost"
                         onClick={handleBackToLanding}
-                        className="text-foreground hover:text-foreground hover:bg-[#F0F0F0] h-12 w-12 p-0 flex items-center justify-center [&_svg]:!size-8"
+                        className="text-foreground hover:text-foreground hover:bg-[#F0F0F0] rounded-full h-12 w-12 p-0 flex items-center justify-center active:scale-95 transition-all duration-300 ease-out [&_svg]:!size-8"
                       >
                         <ChevronLeft className="w-8 h-8" />
                       </Button>
