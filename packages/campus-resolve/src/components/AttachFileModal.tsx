@@ -262,7 +262,7 @@ export const AttachFileModal = ({ open, onOpenChange, onUpload }: AttachFileModa
             variant="outline"
             onClick={handleCancel}
             disabled={isUploading}
-            className="rounded-full border-foreground/25 text-foreground active:scale-95 shadow-sm hover:shadow-md transition-all duration-300 ease-out hover:bg-gray-100"
+            className="rounded-full border-foreground/25 text-foreground active:scale-95 shadow-sm hover:shadow-md transition-all duration-300 ease-out hover:bg-gray-100 hover:text-foreground"
           >
             Cancel
           </Button>

@@ -392,7 +392,7 @@ const getFileIcon = (fileType: string) => {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel className="rounded-full transition-all duration-300 ease-out active:scale-95 hover:bg-muted">
+                  <AlertDialogCancel className="rounded-full transition-all duration-300 ease-out active:scale-95 hover:bg-muted hover:text-foreground">
                     Cancel
                   </AlertDialogCancel>
                   <AlertDialogAction

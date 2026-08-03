@@ -192,7 +192,7 @@ export const EditNoteModal = ({
           <Button
             variant="outline"
             onClick={handleCancel}
-            className="rounded-full active:scale-95 shadow-sm hover:shadow-md transition-all duration-300 ease-out hover:bg-muted"
+            className="rounded-full active:scale-95 shadow-sm hover:shadow-md transition-all duration-300 ease-out hover:bg-muted hover:text-foreground"
           >
             Cancel
           </Button>
