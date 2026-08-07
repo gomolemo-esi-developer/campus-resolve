@@ -679,12 +679,19 @@ export const moduleApi = {
 
     /**
       * Update a module
+      * Note: Transform camelCase to snake_case for backend
       */
     update: async (id: string, module: Partial<Omit<ModuleData, 'id'>>): Promise<ModuleData> => {
+        const payload: any = {};
+        if (module.code !== undefined) payload.code = module.code;
+        if (module.name !== undefined) payload.name = module.name;
+        if (module.courseId !== undefined) payload.course_id = module.courseId;
+        if (module.departmentId !== undefined) payload.department_id = module.departmentId;
+
         const response = await fetch(`${API_BASE}/modules/${id}`, {
             method: 'PUT',
             headers: getHeaders(),
-            body: JSON.stringify(module),
+            body: JSON.stringify(payload),
         });
         const result = await handleResponse<ModuleData>(response);
         return result.data!;

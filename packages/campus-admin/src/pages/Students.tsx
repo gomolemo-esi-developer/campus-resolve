@@ -190,9 +190,9 @@ export default function Students() {
         try {
             const result = await moduleApi.list('', '', '', 1, 1000);
             const options = (result.data || []).map((mod: any) => ({ label: `${mod.code} - ${mod.name}`, value: mod.id }));
-            const map: Record<string, { label: string; departmentId: string; courseId: string }> = {};
+            const map: Record<string, { label: string; departmentId: string; courseId: string; facultyId: string }> = {};
             (result.data || []).forEach((mod: any) => {
-                map[mod.id] = { label: `${mod.code} - ${mod.name}`, departmentId: mod.department_id, courseId: mod.course_id };
+                map[mod.id] = { label: `${mod.code} - ${mod.name}`, departmentId: mod.department_id, courseId: mod.course_id, facultyId: mod.facultyId || mod.faculty_id };
             });
             setModuleOptions(options);
             setModuleMap(map);

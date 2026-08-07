@@ -45,6 +45,14 @@ interface AdminTableProps<T> {
   loading?: boolean;
   /** Optional custom row className for styling */
   rowClassName?: (isSelected: boolean) => string;
+  /**
+   * When true, columns keep their declared widths instead of being
+   * squeezed to fit the container — if the columns' combined width
+   * exceeds the available space, the table scrolls horizontally
+   * instead of cramming content. The card itself still fills the
+   * container; only the table inside it can overflow and scroll.
+   */
+  scrollOnOverflow?: boolean;
 }
 
 /**
@@ -71,6 +79,7 @@ export function AdminTable<T extends { [key: string]: any }>({
   onSelectAll,
   loading = false,
   rowClassName,
+  scrollOnOverflow = false,
 }: AdminTableProps<T>) {
   const allSelected =
     selectedRows.size === data.length && data.length > 0;
@@ -81,9 +90,9 @@ export function AdminTable<T extends { [key: string]: any }>({
     }`;
 
   return (
-    <div className="relative flex flex-col overflow-hidden rounded-xl border border-border/60 bg-white shadow-sm">
+    <div className="relative flex w-full flex-col overflow-hidden rounded-xl border border-border/60 bg-white shadow-sm">
       <div className="admin-table overflow-x-auto">
-        <Table className="w-full table-fixed text-sm">
+        <Table className={scrollOnOverflow ? "min-w-full w-max table-fixed text-sm" : "w-full table-fixed text-sm"}>
           <TableHeader className="sticky top-0 z-10 bg-muted/60 backdrop-blur-sm">
             <TableRow className="border-b border-border/70 bg-transparent hover:bg-transparent">
               <TableHead className="h-11 w-12 shrink-0 px-4">

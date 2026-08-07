@@ -12,6 +12,7 @@ import {
     ActionBar,
     DeleteConfirmDialog,
     FormSelect,
+    AutoFillField,
     FormInputField,
     VALIDATION,
     ERROR_MESSAGES,
@@ -45,6 +46,12 @@ interface CourseOption {
     label: string;
     value: string;
     departmentId: string;
+    facultyId: string;
+}
+
+interface FacultyOption {
+    label: string;
+    value: string;
 }
 
 const initialData: ModuleData[] = [];
@@ -63,6 +70,7 @@ export default function Module() {
     const [data, setData] = useState<ModuleData[]>(initialData);
     const [departmentOptions, setDepartmentOptions] = useState<DepartmentOption[]>([]);
     const [courseOptions, setCourseOptions] = useState<CourseOption[]>([]);
+    const [facultyOptions, setFacultyOptions] = useState<FacultyOption[]>([]);
     const [editingItem, setEditingItem] = useState<ModuleData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -86,6 +94,7 @@ export default function Module() {
     // Load dropdowns and data from backend on component mount
     useEffect(() => {
         loadDepartments();
+        loadFaculties();
         loadCourses();
         loadModules();
     }, []);
@@ -119,6 +128,34 @@ export default function Module() {
         }
     };
 
+    const loadFaculties = async () => {
+        try {
+            const getAuthToken = () => {
+                return localStorage.getItem('auth_token') || 'test-token-dev';
+            };
+
+            const response = await fetch('/api/admin/faculties?limit=1000', {
+                headers: {
+                    'Authorization': `Bearer ${getAuthToken()}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load faculties');
+            }
+
+            const result = await response.json();
+            const options = (result.data || []).map((faculty: any) => ({
+                label: faculty.name,
+                value: faculty.id,
+            }));
+            setFacultyOptions(options);
+        } catch (error) {
+            console.error('Error loading faculties:', error);
+        }
+    };
+
     const loadCourses = async () => {
         try {
             const getAuthToken = () => {
@@ -137,10 +174,15 @@ export default function Module() {
             }
 
             const result = await response.json();
+            // Course rows already carry their own department_id/faculty_id
+            // (kept in sync server-side), so the Module form can derive
+            // Department and Faculty directly from the selected course
+            // instead of maintaining a second, independently-editable link.
             const options = (result.data || []).map((course: any) => ({
                 label: `${course.code} - ${course.name}`,
                 value: course.id,
                 departmentId: course.department_id,
+                facultyId: course.faculty_id,
             }));
             setCourseOptions(options);
         } catch (error) {
@@ -205,13 +247,35 @@ export default function Module() {
             return;
         }
 
+        // Re-derive Department/Faculty from the selected course (same pattern
+        // Course.tsx uses to derive Faculty from Department) instead of trusting
+        // whatever is currently in formData, so a stale selection can't be saved.
+        const selectedCourse = courseOptions.find(c => c.value === formData.courseId);
+        if (!selectedCourse?.departmentId) {
+            toast({
+                title: "Error",
+                description: "Selected course does not have an associated department.",
+                variant: "destructive",
+            });
+            return;
+        }
+        const selectedDept = departmentOptions.find(d => d.value === selectedCourse.departmentId);
+        if (!selectedDept?.facultyId) {
+            toast({
+                title: "Error",
+                description: "Selected course's department does not have an associated faculty.",
+                variant: "destructive",
+            });
+            return;
+        }
+
         try {
             setIsLoading(true);
             await moduleApi.create({
                 code: formData.code,
                 name: formData.name,
                 courseId: formData.courseId,
-                departmentId: formData.departmentId,
+                departmentId: selectedCourse.departmentId,
             });
             setIsAddDialogOpen(false);
             resetForm();
@@ -266,13 +330,33 @@ export default function Module() {
 
         if (!editingItem) return;
 
+        // Re-derive Department/Faculty from the selected course, same as handleSave.
+        const selectedCourse = courseOptions.find(c => c.value === formData.courseId);
+        if (!selectedCourse?.departmentId) {
+            toast({
+                title: "Error",
+                description: "Selected course does not have an associated department.",
+                variant: "destructive",
+            });
+            return;
+        }
+        const selectedDept = departmentOptions.find(d => d.value === selectedCourse.departmentId);
+        if (!selectedDept?.facultyId) {
+            toast({
+                title: "Error",
+                description: "Selected course's department does not have an associated faculty.",
+                variant: "destructive",
+            });
+            return;
+        }
+
         try {
             setIsLoading(true);
             await moduleApi.update(editingItem.id, {
                 code: formData.code,
                 name: formData.name,
                 courseId: formData.courseId,
-                departmentId: formData.departmentId,
+                departmentId: selectedCourse.departmentId,
             });
             setIsEditDialogOpen(false);
             setEditingItem(null);
@@ -345,40 +429,47 @@ export default function Module() {
     };
 
     const columns: AdminTableColumn<ModuleData>[] = [
-        { key: "code", label: "Module Code", width: "w-[140px]" },
-        { key: "name", label: "Module Name", width: "w-[260px]" },
+        { key: "code", label: "Module Code", width: "w-[130px]", nowrap: true },
+        { key: "name", label: "Module Name", width: "w-[240px]", truncate: true },
         {
             key: "courseName",
             label: "Course",
-            width: "w-[200px]",
+            width: "w-[210px]",
             render: (value) => (
-                <Badge variant="secondary" className="bg-foreground text-background">
-                    {value || "Unknown"}
+                <Badge variant="secondary" className="max-w-full bg-foreground text-background" title={String(value ?? "") || undefined}>
+                    <span className="min-w-0 truncate">{value || "Unknown"}</span>
                 </Badge>
             ),
         },
         {
             key: "departmentName",
             label: "Department",
-            width: "w-[200px]",
+            width: "w-[190px]",
             render: (value) => (
-                <Badge variant="secondary" className="bg-foreground text-background">
-                    {value || "Unknown"}
+                <Badge variant="secondary" className="max-w-full bg-foreground text-background" title={String(value ?? "") || undefined}>
+                    <span className="min-w-0 truncate">{value || "Unknown"}</span>
                 </Badge>
             ),
         },
         {
             key: "facultyName",
             label: "Faculty",
+            width: "w-[260px]",
             render: (value) => (
-                <Badge variant="outline">
-                    {value || "Unknown"}
+                <Badge variant="outline" className="max-w-full" title={String(value ?? "") || undefined}>
+                    <span className="min-w-0 truncate">{value || "Unknown"}</span>
                 </Badge>
             ),
         },
     ];
 
     const isFormValid = formData.code.trim() && formData.name.trim() && formData.courseId && formData.departmentId;
+
+    // Department/Faculty shown in the modal are derived from the selected Course
+    // (same derive-from-parent pattern Course.tsx uses to derive Faculty from Department).
+    const selectedCourseOption = courseOptions.find(c => c.value === formData.courseId);
+    const derivedDepartmentName = departmentOptions.find(d => d.value === formData.departmentId)?.label || "";
+    const derivedFacultyName = facultyOptions.find(f => f.value === selectedCourseOption?.facultyId)?.label || "";
 
     return (
         <div className="w-full h-full flex flex-col items-center px-6">
@@ -451,23 +542,32 @@ export default function Module() {
                                 />
 
                                 <FormSelect
-                                    label="Department"
-                                    value={formData.departmentId}
-                                    onChange={(value) => setFormData({ ...formData, departmentId: value })}
-                                    options={departmentOptions}
-                                    placeholder="Select Department"
-                                    required
-                                    error={formErrors.departmentId}
-                                />
-
-                                <FormSelect
                                     label="Course"
                                     value={formData.courseId}
-                                    onChange={(value) => setFormData({ ...formData, courseId: value })}
+                                    onChange={(value) => {
+                                        const selectedCourse = courseOptions.find(c => c.value === value);
+                                        setFormData({
+                                            ...formData,
+                                            courseId: value,
+                                            departmentId: selectedCourse?.departmentId || "",
+                                        });
+                                    }}
                                     options={courseOptions}
                                     placeholder="Select Course"
                                     required
                                     error={formErrors.courseId}
+                                />
+
+                                <AutoFillField
+                                    label="Department"
+                                    value={derivedDepartmentName}
+                                    source="From Course selection"
+                                />
+
+                                <AutoFillField
+                                    label="Faculty"
+                                    value={derivedFacultyName}
+                                    source="From Course selection"
                                 />
 
                                 <div className="flex justify-center gap-4 pt-6">
@@ -527,23 +627,32 @@ export default function Module() {
                                 />
 
                                 <FormSelect
-                                    label="Department"
-                                    value={formData.departmentId}
-                                    onChange={(value) => setFormData({ ...formData, departmentId: value })}
-                                    options={departmentOptions}
-                                    placeholder="Select Department"
-                                    required
-                                    error={formErrors.departmentId}
-                                />
-
-                                <FormSelect
                                     label="Course"
                                     value={formData.courseId}
-                                    onChange={(value) => setFormData({ ...formData, courseId: value })}
+                                    onChange={(value) => {
+                                        const selectedCourse = courseOptions.find(c => c.value === value);
+                                        setFormData({
+                                            ...formData,
+                                            courseId: value,
+                                            departmentId: selectedCourse?.departmentId || "",
+                                        });
+                                    }}
                                     options={courseOptions}
                                     placeholder="Select Course"
                                     required
                                     error={formErrors.courseId}
+                                />
+
+                                <AutoFillField
+                                    label="Department"
+                                    value={derivedDepartmentName}
+                                    source="From Course selection"
+                                />
+
+                                <AutoFillField
+                                    label="Faculty"
+                                    value={derivedFacultyName}
+                                    source="From Course selection"
                                 />
 
                                 <div className="flex justify-center gap-4 pt-6">
@@ -593,6 +702,7 @@ export default function Module() {
                         selectedRows={selectedRows}
                         onRowToggle={toggleRow}
                         onSelectAll={() => toggleSelectAll(data.length)}
+                        scrollOnOverflow
                     />
 
                     {/* Action Bar */}

@@ -28,6 +28,49 @@ function extractS3Key(url) {
   }
 }
 
+/**
+ * Verify that a (faculty, department, course) selection is an internally
+ * consistent chain - department must belong to faculty, course must belong
+ * to department - before it's persisted. Same relational check already
+ * enforced for Course->Module (see moduleController.create/update); reused
+ * here for Student/Staff academic info so mismatched hierarchy picks can't
+ * be saved from either the UI or a direct API call.
+ * Returns an error message string if invalid, or null if consistent.
+ */
+async function validateAcademicChain({ facultyId, departmentId, courseId }) {
+  if (departmentId && facultyId) {
+    const { data: department, error } = await supabaseService.client
+      .from('departments')
+      .select('faculty_id')
+      .eq('id', departmentId)
+      .single();
+
+    if (error || !department) {
+      return 'Selected department was not found';
+    }
+    if (department.faculty_id !== facultyId) {
+      return 'The selected department does not belong to the selected faculty';
+    }
+  }
+
+  if (courseId && departmentId) {
+    const { data: course, error } = await supabaseService.client
+      .from('courses')
+      .select('department_id')
+      .eq('id', courseId)
+      .single();
+
+    if (error || !course) {
+      return 'Selected course was not found';
+    }
+    if (course.department_id !== departmentId) {
+      return 'The selected course does not belong to the selected department';
+    }
+  }
+
+  return null;
+}
+
 class AdminController {
   /**
    * Generic CRUD handler factory
@@ -523,13 +566,36 @@ const moduleController = {
           details: ['Department must be assigned to a faculty before creating modules. Please edit the department and select a faculty.'],
         });
       }
-      
+
+      // Verify the selected course actually belongs to the selected department
+      const { data: courseForValidation, error: courseValidationError } = await supabaseService.client
+        .from('courses')
+        .select('department_id')
+        .eq('id', req.body.course_id)
+        .single();
+
+      if (courseValidationError || !courseForValidation) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid course',
+          details: ['Course not found'],
+        });
+      }
+
+      if (courseForValidation.department_id !== req.body.department_id) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid course/department combination',
+          details: ['The selected course does not belong to the selected department.'],
+        });
+      }
+
       // Merge the department's faculty_id into the request
       const moduleData = {
         ...req.body,
         faculty_id: department.faculty_id,
       };
-      
+
       const sanitized = validators.module.create(moduleData);
       console.log('[moduleController.create] Sanitized data before save:', sanitized);
       const data = await supabaseService.create('modules', sanitized, userId);
@@ -625,6 +691,34 @@ const moduleController = {
         }
 
         moduleData.faculty_id = department.faculty_id;
+      }
+
+      // Verify the effective course/department pairing is valid whenever either is changing
+      if (req.body.course_id !== undefined || req.body.department_id !== undefined) {
+        const effectiveCourseId = req.body.course_id !== undefined ? req.body.course_id : oldRecord.course_id;
+        const effectiveDepartmentId = req.body.department_id !== undefined ? req.body.department_id : oldRecord.department_id;
+
+        const { data: course, error: courseError } = await supabaseService.client
+          .from('courses')
+          .select('department_id')
+          .eq('id', effectiveCourseId)
+          .single();
+
+        if (courseError || !course) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid course',
+            details: ['Course not found'],
+          });
+        }
+
+        if (course.department_id !== effectiveDepartmentId) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid course/department combination',
+            details: ['The selected course does not belong to the selected department.'],
+          });
+        }
       }
 
       const sanitized = validators.module.update(moduleData);
@@ -828,7 +922,17 @@ const staffController = {
           console.log('[staffController.create] Error looking up names:', e.message);
         }
       }
-      
+
+      // Reject an inconsistent Faculty/Department/Course selection before it's saved
+      const chainError = await validateAcademicChain({ facultyId, departmentId, courseId });
+      if (chainError) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid academic hierarchy',
+          details: [chainError],
+        });
+      }
+
       // Add extracted values to sanitized data
       const finalData = {
         ...sanitized,
@@ -1040,7 +1144,28 @@ const staffController = {
       if (courseId) finalData.course_id = courseId;
       // Remove: department, faculty, course are NOT columns in staff table
       // They are derived from FK IDs when reading
-      
+
+      // Reject an inconsistent Faculty/Department/Course selection before it's saved,
+      // falling back to the existing record's values for whichever field isn't changing.
+      if (finalData.faculty_id || finalData.department_id || finalData.course_id) {
+        const effectiveFacultyId = finalData.faculty_id || oldRecord.faculty_id;
+        const effectiveDepartmentId = finalData.department_id || oldRecord.department_id;
+        const effectiveCourseId = finalData.course_id || oldRecord.course_id;
+
+        const chainError = await validateAcademicChain({
+          facultyId: effectiveFacultyId,
+          departmentId: effectiveDepartmentId,
+          courseId: effectiveCourseId,
+        });
+        if (chainError) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid academic hierarchy',
+            details: [chainError],
+          });
+        }
+      }
+
       // Look up names from IDs - but DON'T save them to staff table
       // These are only used for response transformation
       let lookupFaculty = finalData.faculty_id;
@@ -1774,7 +1899,17 @@ const studentController = {
           console.log('[studentController.create] Error parsing academic_entries:', e.message);
         }
       }
-      
+
+      // Reject an inconsistent Faculty/Department/Course selection before it's saved
+      const chainError = await validateAcademicChain({ facultyId, departmentId, courseId });
+      if (chainError) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid academic hierarchy',
+          details: [chainError],
+        });
+      }
+
       // Look up names from IDs if IDs are provided
       if (facultyId || departmentId || courseId) {
         try {
@@ -1990,12 +2125,33 @@ const studentController = {
          
          updateData.academic_entries = academicEntriesData;
        }
-       
+
+       // Reject an inconsistent Faculty/Department/Course selection before it's saved,
+       // falling back to the existing record's values for whichever field isn't changing.
+       if (updateData.faculty_id !== undefined || updateData.department_id !== undefined || updateData.course_id !== undefined) {
+         const effectiveFacultyId = updateData.faculty_id !== undefined ? updateData.faculty_id : oldRecord.faculty_id;
+         const effectiveDepartmentId = updateData.department_id !== undefined ? updateData.department_id : oldRecord.department_id;
+         const effectiveCourseId = updateData.course_id !== undefined ? updateData.course_id : oldRecord.course_id;
+
+         const chainError = await validateAcademicChain({
+           facultyId: effectiveFacultyId,
+           departmentId: effectiveDepartmentId,
+           courseId: effectiveCourseId,
+         });
+         if (chainError) {
+           return res.status(400).json({
+             success: false,
+             error: 'Invalid academic hierarchy',
+             details: [chainError],
+           });
+         }
+       }
+
        // Handle image_url
        if (req.body.image_url !== undefined) {
          updateData.image_url = req.body.image_url ? extractS3Key(req.body.image_url) : null;
        }
-      
+
       // Look up names from IDs after setting updateData
       if (updateData.faculty_id || updateData.department_id || updateData.course_id) {
         try {

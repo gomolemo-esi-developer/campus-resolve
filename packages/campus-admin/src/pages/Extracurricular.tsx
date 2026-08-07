@@ -298,7 +298,7 @@ export default function Extracurricular() {
     };
 
     const columns: AdminTableColumn<ExtracurricularData>[] = [
-        { key: "activity", label: "Activity Name", width: "w-[320px]" },
+        { key: "activity", label: "Activity Name", width: "w-[240px]", truncate: true },
         {
             key: "departmentName",
             label: "Department",
@@ -316,8 +316,8 @@ export default function Extracurricular() {
                 }
 
                 return (
-                    <Badge variant="secondary" className="bg-foreground text-background">
-                        {displayName}
+                    <Badge variant="secondary" className="max-w-full bg-foreground text-background" title={String(displayName)}>
+                        <span className="min-w-0 truncate">{displayName}</span>
                     </Badge>
                 );
             },

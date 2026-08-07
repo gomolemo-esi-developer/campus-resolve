@@ -375,14 +375,15 @@ export default function Residence() {
         {
             key: "residenceId",
             label: "Residence ID",
-            width: "w-[190px]",
+            width: "w-[130px]",
+            nowrap: true,
             render: (val) => <IdCell id={String(val)} />,
         },
-        { key: "residence", label: "Residence Name", width: "w-[220px]" },
+        { key: "residence", label: "Residence Name", width: "w-[200px]", truncate: true },
         {
             key: "residenceType",
             label: "Type",
-            width: "w-[140px]",
+            width: "w-[130px]",
             nowrap: true,
             render: (val) => (
                 <Badge variant="secondary" className="whitespace-nowrap font-semibold tracking-wide">
@@ -390,10 +391,11 @@ export default function Residence() {
                 </Badge>
             ),
         },
-        { key: "address", label: "Address", width: "w-[260px]", truncate: true },
+        { key: "address", label: "Address", width: "w-[280px]", truncate: true },
         {
             key: "manager",
             label: "Manager",
+            truncate: true,
             render: (val) => {
                 const staff = staffOptions.find(s => s.staffId === val);
                 return staff ? staff.label : val || '—';

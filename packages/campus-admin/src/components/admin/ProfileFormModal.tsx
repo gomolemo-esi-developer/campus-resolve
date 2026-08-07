@@ -37,7 +37,7 @@ interface ProfileFormModalProps {
     extracurricularOptions?: Option[];
     residenceOptions?: Option[];
     moduleOptions?: Option[];
-    moduleMap?: Record<string, { label: string; departmentId: string; courseId: string }>;
+    moduleMap?: Record<string, { label: string; departmentId: string; courseId: string; facultyId?: string }>;
     roleOptions?: Option[];
     levelOptions?: Option[];
     isStaff?: boolean;
@@ -591,16 +591,28 @@ export function ProfileFormModal({
             if (field === 'departmentId') currentDepartmentId = value;
             if (field === 'course') currentCourse = value;
 
-            // If department is selected, auto-populate faculty
-            if (currentDepartmentId && departmentMap[currentDepartmentId]) {
+            // When Faculty is the field being changed, a stale Department/Course
+            // held over from a *different* faculty must not survive - otherwise
+            // the auto-populate-faculty-from-department step below would just
+            // silently override the user's new Faculty pick back to the old one.
+            if (field === 'faculty' && currentDepartmentId && departmentMap[currentDepartmentId]?.facultyId !== currentFaculty) {
+                currentDepartmentId = '';
+                currentCourse = '';
+            }
+
+            // If department is selected, auto-populate faculty (but never let a
+            // stale department override the Faculty the user just picked)
+            if (field !== 'faculty' && currentDepartmentId && departmentMap[currentDepartmentId]) {
                 const deptData = departmentMap[currentDepartmentId];
                 if (deptData && deptData.facultyId) {
                     currentFaculty = deptData.facultyId;
                 }
             }
 
-            // If course is selected, auto-populate department and faculty
-            if (currentCourse && courseMap[currentCourse]) {
+            // If course is selected, auto-populate department and faculty (but
+            // never let a stale course override a Faculty/Department the user
+            // just picked)
+            if (field !== 'faculty' && field !== 'departmentId' && currentCourse && courseMap[currentCourse]) {
                 const courseData = courseMap[currentCourse];
                 if (courseData) {
                     currentDepartmentId = courseData.departmentId;
@@ -765,44 +777,6 @@ export function ProfileFormModal({
         ]);
     };
 
-    const updateAcademicEntry = (id: string, field: string, value: string) => {
-        setAcademicEntries(entries =>
-            entries.map(entry => {
-                if (entry.id !== id) return entry;
-                
-                const updated = { ...entry, [field]: value };
-                
-                if (field === 'course' && value && courseMap[value]) {
-                    const courseData = courseMap[value];
-                    const deptOpt = departmentOptions.find(d => d.value === courseData.departmentId);
-                    if (deptOpt) {
-                        updated.departmentId = courseData.departmentId;
-                        updated.department = deptOpt.label;
-                        const deptData = departmentMap[courseData.departmentId];
-                        if (deptData && deptData.facultyId) {
-                            const facOpt = facultyOptions.find(f => f.value === deptData.facultyId);
-                            if (facOpt) {
-                                updated.faculty = deptData.facultyId;
-                                updated.facultyCode = facOpt.value;
-                            }
-                        }
-                    }
-                }
-                
-                if (field === 'departmentId' && value && departmentMap[value]) {
-                    const deptData = departmentMap[value];
-                    const facOpt = facultyOptions.find(f => f.value === deptData.facultyId);
-                    if (facOpt) {
-                        updated.faculty = deptData.facultyId;
-                        updated.facultyCode = facOpt.value;
-                    }
-                }
-                
-                return updated;
-            })
-        );
-    };
-
     const [isSaving, setIsSaving] = useState(false);
 
     const filteredModules = useMemo(() => {
@@ -854,14 +828,18 @@ export function ProfileFormModal({
                             }
                         }
                         
-                        // Auto-fill faculty from department
-                        if (modData.departmentId && departmentMap[modData.departmentId]) {
+                        // Auto-fill faculty - prefer the module's own faculty_id (trusted
+                        // directly, same as Module.tsx derives from a course's own FK
+                        // columns) and fall back to the department chain if absent.
+                        if (modData.facultyId) {
+                            updated.faculty = modData.facultyId;
+                        } else if (modData.departmentId && departmentMap[modData.departmentId]) {
                             const deptData = departmentMap[modData.departmentId];
                             if (deptData && deptData.facultyId) {
                                 updated.faculty = deptData.facultyId;
                             }
                         }
-                        
+
                         return updated;
                     })
                 );
@@ -906,6 +884,16 @@ export function ProfileFormModal({
         if (!onSave) return;
         setIsSaving(true);
         try {
+            // Students.tsx/Staff.tsx read flat faculty/facultyId/department/departmentId/
+            // course/courseId fields off the saved payload (they predate the academicEntries
+            // array). Derive them from the first academic entry here so those reads are no
+            // longer silently undefined - the backend's academic_entries[0]/professional_entries[0]
+            // fallback stays in place as a safety net, but the client now sends the real values.
+            const firstEntry = academicEntries[0];
+            const facultyId = firstEntry?.faculty || "";
+            const departmentId = firstEntry?.departmentId || "";
+            const courseId = firstEntry?.course || "";
+
             const completeData = {
                 ...personalInfo,
                 ...additionalInfo,
@@ -916,6 +904,15 @@ export function ProfileFormModal({
                 staffId: personalInfo.staffNumber,
                 studentId: isStudent ? personalInfo.staffNumber : undefined,
                 image: profileImage,
+                faculty: facultyOptions.find(f => f.value === facultyId)?.label || "",
+                facultyId,
+                facultyCode: firstEntry?.facultyCode || "",
+                department: firstEntry?.department || departmentOptions.find(d => d.value === departmentId)?.label || "",
+                departmentId,
+                departmentCode: "",
+                course: courseOptions.find(c => c.value === courseId)?.label || "",
+                courseId,
+                courseCode: firstEntry?.courseCode || "",
             };
             await onSave(completeData);
             onOpenChange(false);
@@ -1185,17 +1182,17 @@ export function ProfileFormModal({
                                             setAcademicEntries(entries =>
                                                 entries.map(e => {
                                                     if (e.id !== entry.id) return e;
+                                                    // Faculty only narrows the Department/Course/Module options
+                                                    // (via updateCascadeFilters below) - it must not force a
+                                                    // department choice the user didn't make. If the previously
+                                                    // selected department no longer belongs to this faculty,
+                                                    // clear it so a stale, now-invalid pairing can't be saved.
                                                     let updated = { ...e, faculty: v };
-                                                    // Auto-populate department from faculty
-                                                    if (v) {
-                                                        const relevantDepts = departmentOptions.filter(d => {
-                                                            const deptData = departmentMap[d.value];
-                                                            return deptData && deptData.facultyId === v;
-                                                        });
-                                                        if (relevantDepts.length > 0) {
-                                                            updated.departmentId = relevantDepts[0].value;
-                                                            updated.department = relevantDepts[0].label;
-                                                        }
+                                                    if (v && e.departmentId && departmentMap[e.departmentId]?.facultyId !== v) {
+                                                        updated.departmentId = "";
+                                                        updated.department = "";
+                                                        updated.course = "";
+                                                        updated.courseCode = "";
                                                     }
                                                     return updated;
                                                 })
